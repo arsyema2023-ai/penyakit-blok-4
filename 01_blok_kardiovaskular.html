@@ -1,0 +1,2239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSCE Flipbook — Blok Kardiovaskular | SKDI 4A</title>
+<style>
+/* === ROOT & RESET === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #c0392b; --primary-dark: #96281b;
+  --secondary: #2c3e50; --accent: #e74c3c;
+  --bg: #f5f6fa; --card: #ffffff; --text: #2c3e50;
+  --text-light: #7f8c8d; --shadow: 0 8px 32px rgba(0,0,0,0.12);
+  --radius: 16px; --transition: 0.4s cubic-bezier(0.4,0,0.2,1);
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* === LAYOUT === */
+.app { display: flex; height: 100vh; overflow: hidden; }
+
+/* === SIDEBAR === */
+.sidebar {
+  width: 280px; min-width: 280px; background: var(--secondary);
+  color: white; overflow-y: auto; padding: 20px 0; z-index: 100;
+  display: flex; flex-direction: column;
+}
+.sidebar h1 { font-size: 1.1rem; padding: 0 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+.sidebar h1 .icon { font-size: 1.4rem; }
+.sidebar .subtitle { padding: 8px 20px 12px; font-size: 0.75rem; color: rgba(255,255,255,0.6); border-bottom: 1px solid rgba(255,255,255,0.05); }
+.disease-list { list-style: none; padding: 8px 0; flex: 1; }
+.disease-list li {
+  padding: 10px 20px 10px 24px; cursor: pointer; font-size: 0.85rem;
+  border-left: 3px solid transparent; transition: all var(--transition);
+  display: flex; align-items: center; gap: 10px;
+}
+.disease-list li:hover { background: rgba(255,255,255,0.08); }
+.disease-list li.active { background: rgba(255,255,255,0.12); border-left-color: var(--accent); font-weight: 600; }
+.disease-list li .num { font-size: 0.7rem; color: rgba(255,255,255,0.4); min-width: 22px; font-weight: 700; }
+.disease-list li .name { flex: 1; }
+
+/* === MAIN CONTENT === */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* === TOP BAR === */
+.topbar {
+  background: var(--card); padding: 12px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex; align-items: center; justify-content: space-between; z-index: 50;
+  border-bottom: 2px solid var(--primary);
+}
+.topbar .title-section { display: flex; align-items: center; gap: 12px; }
+.topbar .title-section h2 { font-size: 1.1rem; color: var(--primary); }
+.topbar .title-section .badge { background: var(--primary); color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+.topbar .page-indicator { font-size: 0.85rem; color: var(--text-light); }
+.topbar .page-indicator span { font-weight: 700; color: var(--text); }
+
+/* === FLIPBOOK CONTAINER === */
+.flipbook-wrapper {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 20px; overflow: hidden; position: relative;
+}
+.flipbook {
+  width: 100%; max-width: 1000px; height: 100%; max-height: 82vh;
+  position: relative; perspective: 1600px;
+}
+
+/* === PAGES === */
+.page {
+  position: absolute; inset: 0; background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 32px 40px; overflow-y: auto;
+  display: none; transform-origin: left center;
+  transition: transform 0.6s ease, opacity 0.5s ease;
+  -webkit-overflow-scrolling: touch;
+}
+.page.active { display: block; z-index: 10; }
+.page.flipping { display: block; animation: flipOut 0.6s ease forwards; }
+.page.flipping-in { display: block; animation: flipIn 0.6s ease forwards; }
+
+@keyframes flipOut {
+  0% { transform: rotateY(0deg) scale(1); opacity: 1; }
+  100% { transform: rotateY(-90deg) scale(0.95); opacity: 0; }
+}
+@keyframes flipIn {
+  0% { transform: rotateY(90deg) scale(0.95); opacity: 0; }
+  100% { transform: rotateY(0deg) scale(1); opacity: 1; }
+}
+
+/* === PAGE CONTENT === */
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 3px solid var(--primary); }
+.page-header .step { font-size: 0.75rem; color: white; background: var(--primary); padding: 3px 12px; border-radius: 20px; font-weight: 600; }
+.page-header .page-title { font-size: 1.2rem; font-weight: 700; color: var(--secondary); }
+.page-header .page-num { font-size: 0.8rem; color: var(--text-light); }
+
+.section { margin-bottom: 16px; }
+.section h3 { font-size: 0.95rem; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.section h3 .emoji { font-size: 1.1rem; }
+.section p, .section li { font-size: 0.88rem; line-height: 1.7; color: var(--text); }
+.section ul { padding-left: 20px; }
+.section ul li { margin-bottom: 4px; }
+.tag { display: inline-block; background: #fef0ef; color: var(--primary); padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin: 2px; }
+
+/* === MEDIA BOX === */
+.media-box {
+  background: #f8f9fa; border-radius: 12px; padding: 16px;
+  margin: 12px 0; border: 1px solid #e9ecef; text-align: center;
+}
+.media-box canvas, .media-box svg { max-width: 100%; border-radius: 8px; }
+.media-box .caption { font-size: 0.75rem; color: var(--text-light); margin-top: 8px; font-style: italic; }
+
+/* === ECG Display === */
+.ecg-container { background: #fff; border-radius: 8px; padding: 10px; border: 1px solid #ddd; margin: 8px 0; }
+.ecg-container canvas { width: 100%; height: 120px; }
+
+/* === BUTTONS === */
+.nav-buttons {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 24px; background: var(--card); border-top: 1px solid #eee;
+  gap: 12px;
+}
+.nav-buttons button {
+  padding: 10px 24px; border: none; border-radius: 10px; font-size: 0.85rem;
+  font-weight: 600; cursor: pointer; transition: all var(--transition);
+  display: flex; align-items: center; gap: 8px;
+}
+.btn-prev { background: #ecf0f1; color: var(--text); }
+.btn-prev:hover { background: #dfe4e6; }
+.btn-next { background: var(--primary); color: white; }
+.btn-next:hover { background: var(--primary-dark); }
+.btn-next:disabled, .btn-prev:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-reset { background: transparent; color: var(--text-light); border: 1px solid #ddd !important; }
+.btn-reset:hover { background: #f5f5f5; }
+
+/* === PRESCRIPTION === */
+.prescription-box {
+  background: #fffef5; border: 2px solid #e8dcc8; border-radius: 12px;
+  padding: 20px; font-family: 'Courier New', monospace; margin: 12px 0;
+}
+.prescription-box .rx-header { display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; padding-bottom: 8px; margin-bottom: 12px; font-size: 0.85rem; }
+.prescription-box .rx-header .rx { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+.prescription-box .rx-item { padding: 6px 0; border-bottom: 1px dotted #eee; display: flex; gap: 12px; font-size: 0.88rem; }
+.prescription-box .rx-item .r { min-width: 30px; color: var(--primary); font-weight: 700; }
+.prescription-box .rx-footer { margin-top: 12px; font-size: 0.8rem; color: var(--text-light); }
+
+/* === DIFFERENTIAL === */
+.dd-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }
+.dd-item {
+  background: #f8f9fa; padding: 10px 14px; border-radius: 10px;
+  border-left: 4px solid #ddd; font-size: 0.85rem;
+  transition: all 0.3s ease; cursor: pointer;
+}
+.dd-item:hover { border-left-color: var(--primary); background: #fef0ef; }
+.dd-item .dd-title { font-weight: 600; }
+.dd-item .dd-desc { font-size: 0.78rem; color: var(--text-light); margin-top: 2px; }
+.dd-item.reveal { border-left-color: var(--primary); background: #fef0ef; }
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .sidebar { width: 60px; min-width: 60px; }
+  .sidebar h1 span, .sidebar .subtitle, .disease-list li .name { display: none; }
+  .disease-list li { padding: 14px; justify-content: center; }
+  .disease-list li .num { min-width: auto; font-size: 0.85rem; }
+  .page { padding: 20px; }
+  .topbar { padding: 8px 16px; }
+  .topbar .title-section h2 { font-size: 0.9rem; }
+  .dd-list { grid-template-columns: 1fr; }
+}
+
+/* === SCROLLBAR === */
+.page::-webkit-scrollbar { width: 6px; }
+.page::-webkit-scrollbar-track { background: transparent; }
+.page::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+/* === ANATOMY SVG === */
+.heart-svg { max-width: 220px; margin: 0 auto; display: block; }
+.body-map { max-width: 160px; }
+
+/* === LOADING === */
+.loading { display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; gap: 16px; }
+.loading .pulse { width: 40px; height: 40px; background: var(--primary); border-radius: 50%; animation: pulse 1.2s ease infinite; }
+@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.6; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <h1><span class="icon">❤️</span> <span>Blok Kardiovaskular</span></h1>
+    <div class="subtitle"><span>15 Flipbook • SKDI 4A • OSCE</span></div>
+    <ul class="disease-list" id="diseaseList"></ul>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="title-section">
+        <h2 id="flipTitle">Hipertensi Esensial</h2>
+        <span class="badge" id="flipBadge">1/15</span>
+      </div>
+      <div class="page-indicator">Halaman <span id="pageNum">1</span> / <span id="pageTotal">12</span></div>
+    </div>
+
+    <div class="flipbook-wrapper">
+      <div class="flipbook" id="flipbook"></div>
+    </div>
+
+    <div class="nav-buttons">
+      <div>
+        <button class="btn-reset" onclick="goToDisease(currentDisease)">📖 Awal</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-prev" id="prevBtn" onclick="prevPage()">◀ Sebelumnya</button>
+        <button class="btn-next" id="nextBtn" onclick="nextPage()">Selanjutnya ▶</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA — 15 PENYAKIT BLOK KARDIOVASKULAR (SKDI 4A)
+// ============================================================
+const DISEASES = [
+  // 1. HIPERTENSI ESENSIAL
+  {
+    id: 0, name: "Hipertensi Esensial",
+    pages: [
+      { title: "Skenario Kasus", step: "IPM-1",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🏥</span> Skenario</h3>
+            <p>Seorang laki-laki, 52 tahun, datang ke Puskesmas dengan keluhan sakit kepala berat di tengkuk sejak 1 minggu terakhir. Pasien juga mengeluh mudah lelah, penglihatan kadang kabur, dan sering buang air kecil di malam hari (nokturia 3-4 kali/malam). Pasien memiliki kebiasaan merokok 2 bungkus/hari sejak 30 tahun lalu dan suka makanan asin/gorengan. Riwayat keluarga: ayah hipertensi dan stroke. Tidak ada riwayat DM atau penyakit ginjal sebelumnya. Pasien belum pernah minum obat rutin.</p>
+          </div>
+          <div class="media-box">
+            <svg viewBox="0 0 400 160" style="max-width:100%">
+              <rect width="400" height="160" fill="#fef0ef" rx="12"/>
+              <text x="200" y="30" text-anchor="middle" fill="#c0392b" font-weight="700" font-size="14">PETA KONSEP — HIPERTENSI ESENSIAL</text>
+              <text x="200" y="52" text-anchor="middle" fill="#555" font-size="11">RAAS overaktivasi → Vasokonstriksi → ↑ TPR → ↑ TD</text>
+              <line x1="200" y1="60" x2="200" y2="75" stroke="#c0392b" stroke-width="2"/>
+              <text x="200" y="90" text-anchor="middle" fill="#555" font-size="11">Faktor Risiko: Merokok, Garam, Genetik, Obesitas, Stres</text>
+              <line x1="200" y1="98" x2="200" y2="113" stroke="#c0392b" stroke-width="2"/>
+              <text x="200" y="128" text-anchor="middle" fill="#555" font-size="11">Komplikasi: Stroke, PJK, Gagal Ginjal, Retinopati, LVH</text>
+              <text x="200" y="150" text-anchor="middle" fill="#999" font-size="10">Sumber: SKDI 4A • Hipertensi Esensial (I10)</text>
+            </svg>
+            <div class="caption">Gambar 1.1 — Peta konsep patofisiologi dan faktor risiko hipertensi esensial</div>
+          </div>
+        `
+      },
+      { title: "Gejala", step: "IPM-2",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🔍</span> Gejala Klinis</h3>
+            <ul>
+              <li>Sakit kepala oksipital/berat di tengkuk (terutama pagi hari)</li>
+              <li>Mudah lelah, lemas, nokturia (3-4x/malam)</li>
+              <li>Penglihatan kabur (blurred vision) — efek pada retina</li>
+              <li>Palpitasi (kadang-kadang)</li>
+              <li>Epistaksis (dapat terjadi pada hipertensi berat)</li>
+              <li>Sering tanpa gejala (asimtomatik) — "silent killer"</li>
+            </ul>
+          </div>
+          <div class="section">
+            <h3><span class="emoji">⚠️</span> Gejala pada Hipertensi Berat/Krisis</h3>
+            <ul>
+              <li>Sakit kepala hebat, mual/muntah</li>
+              <li>Nyeri dada, sesak napas</li>
+              <li>Perubahan status mental (kebingungan)</li>
+              <li>Kejang atau penurunan kesadaran (ensefalopati hipertensi)</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Karakteristik TTV", step: "IPM-3",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🩺</span> Vital Signs — Hipertensi Esensial</h3>
+            <div class="media-box">
+              <table style="width:100%;border-collapse:collapse;font-size:0.88rem">
+                <tr style="background:#c0392b;color:white"><th style="padding:8px;text-align:left">Parameter</th><th style="padding:8px;text-align:left">Nilai</th><th style="padding:8px;text-align:left">Keterangan</th></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Tekanan Darah Sistolik</td><td style="padding:8px;font-weight:700;color:#c0392b">160/100 mmHg</td><td style="padding:8px">Hipertensi Derajat 2 (JNC 8/PERKI)</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Nadi</td><td style="padding:8px">88 x/menit</td><td style="padding:8px">Regular, isi cukup</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Pernapasan</td><td style="padding:8px">20 x/menit</td><td style="padding:8px">Normal (eupnea)</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Suhu</td><td style="padding:8px">36.5°C</td><td style="padding:8px">Afebris</td></tr>
+                <tr><td style="padding:8px">BMI</td><td style="padding:8px;font-weight:700;color:#e67e22">28.5 kg/m²</td><td style="padding:8px">Overweight (obesitas derajat 1)</td></tr>
+              </table>
+              <div class="caption">Tabel 1.1 — Tanda vital khas pasien hipertensi esensial derajat 2</div>
+            </div>
+          </div>
+          <div class="section">
+            <h3><span class="emoji">📊</span> Klasifikasi Tekanan Darah (JNC 8 / PERKI 2021)</h3>
+            <ul>
+              <li>Normal: Sistol &lt;120 dan Diastol &lt;80</li>
+              <li>Prehipertensi: 120-139 atau 80-89</li>
+              <li>Hipertensi Derajat 1: 140-159 atau 90-99</li>
+              <li><strong>Hipertensi Derajat 2: ≥160 atau ≥100</strong></li>
+              <li>Krisis Hipertensi: &gt;180 dan/atau &gt;120</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Head to Toe", step: "IPM-4",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">👤</span> Pemeriksaan Fisik Head-to-Toe</h3>
+            <ul>
+              <li><strong>Kepala:</strong> Wajah kemerahan (flushed), tidak ada tanda parese n. VII</li>
+              <li><strong>Mata:</strong> Konjungtiva anemis (-), sklera ikterik (-), funduskopi: retinopati hipertensi derajat I-II (arteri menyempit, A-V nicking)</li>
+              <li><strong>Leher:</strong> JVP tidak meningkat, kelenjar tiroid tidak membesar, karotis teraba simetris</li>
+              <li><strong>Thoraks:</strong> Simetris, retraksi (-), fremus normal, sonor, vesikuler, ronki (-), wheezing (-)</li>
+              <li><strong>Jantung:</strong> Iktus kordi bergeser ke lateral (curiga LVH), S1-S2 normal, murmur (-), gallop (-)</li>
+              <li><strong>Abdomen:</strong> Supel, hepar/lien tidak teraba, bruit abdomen (-)</li>
+              <li><strong>Ekstremitas:</strong> Akral hangat, edema tungkai (-), pulsasi arteri dorsalis pedis teraba</li>
+              <li><strong>Status Neurologis:</strong> GCS 15, parese (-), reflek fisiologis normal</li>
+            </ul>
+          </div>
+          <div class="media-box">
+            <svg viewBox="0 0 300 120" style="max-width:100%">
+              <rect width="300" height="120" fill="#f0f4ff" rx="8"/>
+              <text x="150" y="24" text-anchor="middle" fill="#2c3e50" font-weight="700" font-size="13">PEMERIKSAAN FUNDUS OKULI</text>
+              <circle cx="80" cy="72" r="35" fill="none" stroke="#c0392b" stroke-width="1.5"/>
+              <circle cx="80" cy="72" r="8" fill="#c0392b" opacity="0.3"/>
+              <line x1="72" y1="72" x2="62" y2="68" stroke="#c0392b" stroke-width="2"/>
+              <line x1="88" y1="72" x2="98" y2="68" stroke="#c0392b" stroke-width="2"/>
+              <line x1="80" y1="60" x2="80" y2="45" stroke="#c0392b" stroke-width="1.5"/>
+              <text x="80" y="118" text-anchor="middle" fill="#666" font-size="9">Arteri menyempit (silver wiring)</text>
+              <text x="220" y="40" fill="#555" font-size="10">Temuan Retinopati HT:</text>
+              <text x="220" y="56" fill="#555" font-size="10">• A-V nicking</text>
+              <text x="220" y="70" fill="#555" font-size="10">• Silver wiring</text>
+              <text x="220" y="84" fill="#555" font-size="10">• Flame hemorrhage*</text>
+              <text x="220" y="98" fill="#555" font-size="10">• Cotton wool spots*</text>
+              <text x="220" y="114" fill="#999" font-size="9">*Jika hipertensi maligna</text>
+            </svg>
+            <div class="caption">Gambar 1.2 — Temuan funduskopi pada retinopati hipertensi</div>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Fisik Lokalis", step: "IPM-5",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🫀</span> Pemeriksaan Fisik Kardiovaskular Khusus</h3>
+            <ul>
+              <li><strong>Palpasi Iktus Kordi:</strong> Bergeser ke lateral dan inferior (hipertrofi ventrikel kiri/LVH)</li>
+              <li><strong>Auskultasi:</strong> Bising fungsional (flow murmur) grade II/VI dapat terdengar; S4 gallop (hipertensi berat)</li>
+              <li><strong>Perkusi Jantung:</strong> Batas jantung kiri melebar (kardiomegali)</li>
+              <li><strong>Palpasi Arteri Karotis:</strong> Pulsasi kuat dan cepat (water-hammer pulse jika dicurigai AR)</li>
+              <li><strong>Pengukuran TD:</strong> Dilakukan 2x duduk setelah istirahat 5 menit; bandingkan kedua lengan</li>
+              <li><strong>ABI (Ankle-Brachial Index):</strong> Normal &gt;0.9 (skrining PAD)</li>
+            </ul>
+          </div>
+          <div class="media-box">
+            <svg viewBox="0 0 400 110" style="max-width:100%">
+              <rect width="400" height="110" fill="#faf5ff" rx="8"/>
+              <text x="200" y="22" text-anchor="middle" fill="#2c3e50" font-weight="700" font-size="13">TEKNIK PENGUKURAN TD YANG BENAR</text>
+              <text x="30" y="44" fill="#555" font-size="11">✓ Posisi duduk, punggung bersandar</text>
+              <text x="30" y="60" fill="#555" font-size="11">✓ Manset setinggi jantung, lengan ditopang</text>
+              <text x="30" y="76" fill="#555" font-size="11">✓ Lebar manset 40% lingkar lengan atas</text>
+              <text x="30" y="92" fill="#555" font-size="11">✓ Tungkai tidak menyilang, kandung kemih kosong</text>
+              <text x="200" y="108" text-anchor="middle" fill="#999" font-size="9">Sumber: PERKI 2021 — Panduan Hipertensi</text>
+            </svg>
+            <div class="caption">Gambar 1.3 — Prosedur pengukuran tekanan darah yang benar</div>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Penunjang", step: "IPM-6",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🔬</span> Hasil Pemeriksaan Penunjang</h3>
+            <div class="media-box">
+              <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+                <tr style="background:#2c3e50;color:white"><th style="padding:6px;text-align:left">Pemeriksaan</th><th style="padding:6px;text-align:left">Hasil</th><th style="padding:6px;text-align:left">Normal</th></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">Hemoglobin</td><td style="padding:6px">14.2 g/dL</td><td style="padding:6px">13-17</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">Kreatinin</td><td style="padding:6px">1.1 mg/dL</td><td style="padding:6px">0.7-1.3</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">GDS</td><td style="padding:6px">112 mg/dL</td><td style="padding:6px">&lt;140</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">Kolesterol Total</td><td style="padding:6px;font-weight:700;color:#e67e22">245 mg/dL</td><td style="padding:6px">&lt;200</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">LDL</td><td style="padding:6px;font-weight:700;color:#e67e22">165 mg/dL</td><td style="padding:6px">&lt;130</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">HDL</td><td style="padding:6px">42 mg/dL</td><td style="padding:6px">&gt;40</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">Trigliserida</td><td style="padding:6px;font-weight:700;color:#e67e22">180 mg/dL</td><td style="padding:6px">&lt;150</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">GDP</td><td style="padding:6px">98 mg/dL</td><td style="padding:6px">&lt;100</td></tr>
+                <tr><td style="padding:6px">Urinalisis</td><td style="padding:6px">Protein (-), Eritrosit (-)</td><td style="padding:6px">Negatif</td></tr>
+              </table>
+              <div class="caption">Tabel 1.2 — Profil laboratorium pasien hipertensi + dislipidemia komorbid</div>
+            </div>
+          </div>
+          <div class="section">
+            <h3><span class="emoji">📈</span> Pemeriksaan Tambahan</h3>
+            <ul>
+              <li><strong>EKG:</strong> LVH (Sokolow-Lyon &gt;35mm, Strain pattern), irama sinus normal</li>
+              <li><strong>Foto Thoraks:</strong> Kardiomegali (CTR &gt;0.5), elongasi aorta</li>
+              <li><strong>Ekokardiografi:</strong> LVH konsentrik, fraksi ejeksi normal (60%)</li>
+            </ul>
+          </div>
+          <div class="media-box">
+            <div class="ecg-container"><canvas id="ecgCanvas1"></canvas></div>
+            <div class="caption">Gambar 1.4 — EKG: LVH (Sokolow-Lyon &gt;35 mm) — Generated by ECG Simulator</div>
+          </div>
+        `
+      },
+      { title: "Diagnosis Banding", step: "IPM-7",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🤔</span> Diagnosis Banding</h3>
+            <div class="dd-list" id="ddList0"></div>
+            <p style="margin-top:12px;font-size:0.85rem;color:var(--text-light)">*Tekan setiap item untuk melihat detail</p>
+          </div>
+        `
+      },
+      { title: "Diagnosis Kerja", step: "IPM-8",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">✅</span> Diagnosis Kerja</h3>
+            <div class="media-box" style="background:#f0faf0;border-color:#27ae60">
+              <h4 style="color:#27ae60;font-size:1.1rem">Hipertensi Esensial Derajat 2</h4>
+              <p style="margin-top:8px;font-size:0.9rem">dengan dislipidemia dan overweight (BMI 28.5)</p>
+              <p style="margin-top:4px;font-size:0.8rem;color:var(--text-light)">
+                ICD-10: I10 • TD 160/100 mmHg • LVH pada EKG • Dislipidemia komorbid
+              </p>
+            </div>
+          </div>
+          <div class="section">
+            <h3><span class="emoji">📋</span> Dasar Diagnosis</h3>
+            <ul>
+              <li>TD ≥ 140/90 pada 2 kali pengukuran berbeda</li>
+              <li>Tidak ada penyebab sekunder (normal kreatinin, elektrolit, fungsi tiroid)</li>
+              <li>Faktor risiko: merokok, dislipidemia, obesitas, riwayat keluarga</li>
+              <li>Target Organ Damage: LVH (EKG/ekokardiografi)</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Tatalaksana Umum", step: "IPM-9",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">💊</span> Tatalaksana Farmakologis</h3>
+            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px">Pendekatan STEP-CARE berdasarkan PERKI 2021</p>
+            <ul>
+              <li><strong>Lini Pertama:</strong> CCB (Amlodipin 5-10 mg/hari) ATAU ACEi (Captopril 3×25 mg / Ramipril 5-10 mg/hari) ATAU ARB (Candesartan 8-16 mg/hari)</li>
+              <li><strong>Lini Kedua (kombinasi):</strong> CCB + ACEi/ARB jika TD belum tercapai</li>
+              <li><strong>Lini Ketiga:</strong> CCB + ACEi/ARB + Diuretik Tiazid (HCT 12.5-25 mg)</li>
+              <li>Target TD: &lt;140/90 (tanpa komorbid) atau &lt;130/80 (dengan DM/CKD)</li>
+            </ul>
+          </div>
+          <div class="section">
+            <h3><span class="emoji">🏋️</span> Tatalaksana Non-Farmakologis</h3>
+            <ul>
+              <li><strong>Diet DASH:</strong> Tinggi buah, sayur, rendah garam (&lt;5g NaCl/hari)</li>
+              <li><strong>Reduksi berat badan:</strong> Target BMI &lt;25 kg/m²</li>
+              <li><strong>Aktivitas fisik:</strong> Aerobik 30-45 menit/hari, 5x/minggu</li>
+              <li><strong>Berhenti merokok</strong> — konseling + NRT jika perlu</li>
+              <li><strong>Batasi alkohol:</strong> Maks 1-2 gelas/hari</li>
+              <li><strong>Manajemen stres</strong> — teknik relaksasi, meditasi</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Contoh Resep", step: "IPM-10",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">📝</span> Contoh Resep</h3>
+            <div class="prescription-box">
+              <div class="rx-header">
+                <span class="rx">R / Resep</span>
+                <span>Puskesmas Sehat • dr. Andi</span>
+                <span>SIP: 123/2024</span>
+              </div>
+              <div class="rx-item"><span class="r">R/</span><span>Amlodipin 10 mg tab No. XXX<br>S 1 dd 1 tab (setelah makan)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Kaptopril 25 mg tab No. XXX<br>S 2 dd 1 tab (pagi & sore)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Simvastatin 20 mg tab No. XXX<br>S 1 dd 1 tab (malam hari)</span></div>
+              <div class="rx-footer">
+                <p>Pro: Tn. A (52 th) — Alamat: Jl. Merpati No.10</p>
+                <p>Paraf: [tanda tangan] — Tgl: [tanggal] — Insulin: -</p>
+              </div>
+            </div>
+            <p style="font-size:0.8rem;color:var(--text-light);margin-top:8px">Catatan: ACEi (kaptopril) dapat diganti ARB jika batuk kering muncul. CCB + ACEi kombinasi sinergis.</p>
+          </div>
+        `
+      },
+      { title: "Tatalaksana Khusus", step: "IPM-11",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🏨</span> Tatalaksana Khusus & Rujukan</h3>
+            <ul>
+              <li><strong>Kriteria Rujukan (TACC):</strong> Usia &lt;40 th &gt;180/120 dengan gejala neurologis), komplikasi (gagal jantung, stroke, CKD stage ≥3), komorbid yang sulit dikendalikan</li>
+              <li><strong>Kolaborasi:</strong> Dokter spesialis penyakit dalam (kardiologi) untuk kasus resisten</li>
+              <li><strong>Monitoring:</strong> Kontrol TD 2-4 minggu pertama, jika stabil 3-6 bulan. Cek fungsi ginjal & elektrolit 1-2x/tahun</li>
+              <li><strong>Hipertensi Resisten:</strong> Tidak tercapai target dengan ≥3 obat (termasuk diuretik) → rujuk kardiologi</li>
+              <li><strong>Target Organ Damage:</strong> Screening rutin (ekokardiografi, funduskopi, albuminuria) setiap 1-2 tahun</li>
+            </ul>
+          </div>
+          <div class="media-box" style="background:#fff3e0;border-color:#ff9800">
+            <p style="font-weight:600;color:#e65100">⚠️ ALGORITMA TATALAKSANA HIPERTENSI</p>
+            <p style="font-size:0.85rem;margin-top:4px">Langkah 1: Monoterapi (CCB/ACEi/ARB) → Langkah 2: Kombinasi 2 obat → Langkah 3: Kombinasi 3 obat → Langkah 4: Rujuk</p>
+          </div>
+        `
+      },
+      { title: "Edukasi", step: "IPM-12",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">📢</span> Edukasi Pasien</h3>
+            <ul>
+              <li><strong>Kepatuhan minum obat:</strong> Hipertensi tidak bisa disembuhkan, hanya dikontrol. Jangan hentikan obat tanpa konsultasi</li>
+              <li><strong>Diet rendah garam:</strong> Hindari makanan olahan, kecap, saus, makanan kaleng. Gunakan bumbu alami</li>
+              <li><strong>Monitor TD mandiri:</strong> Catat TD harian di rumah, bawa saat kontrol</li>
+              <li><strong>Kenali tanda bahaya:</strong> Sakit kepala hebat, sesak napas, nyeri dada, penurunan kesadaran → segera ke IGD</li>
+              <li><strong>Gaya hidup sehat:</strong> Olahraga teratur, berhenti merokok, kelola stres</li>
+              <li><strong>Kontrol rutin:</strong> Cek TD, gula darah, kolesterol setiap 3-6 bulan</li>
+              <li><strong>Program Rujuk Balik (PRB):</strong> Pasien stabil mendapat obat kronis di FKTP</li>
+            </ul>
+          </div>
+          <div class="media-box" style="background:#e8f5e9;border-color:#4caf50">
+            <p style="font-weight:600;color:#2e7d32">🎯 TARGET TERAPI</p>
+            <p style="font-size:0.85rem;margin-top:4px">TD &lt;140/90 mmHg (tanpa komorbid) • TD &lt;130/80 (DM/CKD) • LDL &lt;130 mg/dL • Berhenti merokok • BMI &lt;25</p>
+          </div>
+        `
+      }
+    ]
+  },
+  // 2. ANGINA PECTORIS STABIL
+  {
+    id: 1, name: "Angina Pektoris Stabil",
+    pages: [
+      { title: "Skenario Kasus", step: "IPM-1",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🏥</span> Skenario</h3>
+            <p>Seorang laki-laki, 58 tahun, datang ke Puskesmas dengan keluhan nyeri dada seperti ditekan (heaviness) sejak 3 bulan terakhir. Nyeri muncul saat berjalan cepat atau naik tangga, menjalar ke lengan kiri dan rahang. Nyeri mereda setelah istirahat 3-5 menit. Pasien memiliki riwayat hipertensi (tidak terkontrol), DM tipe 2, dan merokok 1.5 bungkus/hari sejak 35 tahun. Pasien juga mengeluh mudah lelah dan sesak napas saat aktivitas berat (NYHA II). Riwayat keluarga: ayah meninggal karena serangan jantung usia 62 tahun.</p>
+          </div>
+          <div class="media-box">
+            <svg viewBox="0 0 400 130" style="max-width:100%">
+              <rect width="400" height="130" fill="#fef0ef" rx="12"/>
+              <text x="200" y="24" text-anchor="middle" fill="#c0392b" font-weight="700" font-size="14">PATOBIOLOGI ANGINA STABIL</text>
+              <text x="200" y="44" text-anchor="middle" fill="#555" font-size="10">Aterosklerosis → Stenosis koroner fiks → ↑ Demand O₂ mismatch</text>
+              <rect x="50" y="55" width="120" height="55" fill="#fff" stroke="#c0392b" rx="6" stroke-width="1.5"/>
+              <text x="110" y="75" text-anchor="middle" fill="#c0392b" font-weight="600" font-size="10">Plak Ateroma</text>
+              <text x="110" y="92" text-anchor="middle" fill="#555" font-size="9">Lumen menyempit</text>
+              <text x="110" y="104" text-anchor="middle" fill="#555" font-size="9">&gt;50-70% diameter</text>
+              <rect x="230" y="55" width="120" height="55" fill="#fff" stroke="#2c3e50" rx="6" stroke-width="1.5"/>
+              <text x="290" y="75" text-anchor="middle" fill="#2c3e50" font-weight="600" font-size="10">Supply-demand</text>
+              <text x="290" y="92" text-anchor="middle" fill="#555" font-size="9">↑ Demand saat aktivitas</text>
+              <text x="290" y="104" text-anchor="middle" fill="#555" font-size="9">→ Iskemia → Nyeri</text>
+              <line x1="170" y1="82" x2="230" y2="82" stroke="#999" stroke-width="1.5" stroke-dasharray="4"/>
+              <text x="200" y="124" text-anchor="middle" fill="#999" font-size="9">Gambar 2.1 — Patofisiologi angina stabil</text>
+            </svg>
+          </div>
+        `
+      },
+      { title: "Gejala", step: "IPM-2",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🔍</span> Gejala Klinis</h3>
+            <ul>
+              <li><strong>Nyeri dada retrosternal:</strong> Seperti ditekan, diperas, atau berat (heavy/ squeezing)</li>
+              <li>Penjalaran ke lengan kiri, bahu, punggung, rahang, atau epigastrium</li>
+              <li>Dipicu oleh aktivitas fisik, emosi, cuaca dingin, atau makanan berat</li>
+              <li>Mereda dengan istirahat atau ISDN (nitrat sublingual) dalam 1-5 menit</li>
+              <li>Sesak napas saat aktivitas (angina equivalent)</li>
+              <li>Durasi nyeri 2-10 menit (tidak &gt;20 menit)</li>
+              <li>Mual, diaforesis (kadang menyertai)</li>
+            </ul>
+          </div>
+          <div class="section">
+            <h3><span class="emoji">⚠️</span> Gejala Angina Ekivalen</h3>
+            <p>Pada pasien DM atau lansia, nyeri mungkin tidak khas (silent ischemia), hanya berupa sesak napas, fatigue, atau epigastric discomfort.</p>
+          </div>
+        `
+      },
+      { title: "Karakteristik TTV", step: "IPM-3",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🩺</span> Vital Signs</h3>
+            <div class="media-box">
+              <table style="width:100%;border-collapse:collapse;font-size:0.88rem">
+                <tr style="background:#c0392b;color:white"><th style="padding:8px;text-align:left">Parameter</th><th style="padding:8px;text-align:left">Nilai</th><th style="padding:8px;text-align:left">Keterangan</th></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">TD</td><td style="padding:8px">150/90 mmHg</td><td style="padding:8px">Hipertensi derajat 1</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Nadi</td><td style="padding:8px">92 x/menit</td><td style="padding:8px">Takikardi ringan</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Pernapasan</td><td style="padding:8px">22 x/menit</td><td style="padding:8px">Normal</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Suhu</td><td style="padding:8px">36.6°C</td><td style="padding:8px">Afebris</td></tr>
+                <tr><td style="padding:8px">BMI</td><td style="padding:8px;font-weight:700;color:#e67e22">29.0 kg/m²</td><td style="padding:8px">Obesitas derajat 1</td></tr>
+              </table>
+            </div>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Head to Toe", step: "IPM-4",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">👤</span> Pemeriksaan Fisik Head-to-Toe</h3>
+            <ul>
+              <li><strong>Mata:</strong> Xanthelasma (+)—deposit kolesterol, arcus lipoides (+)</li>
+              <li><strong>Leher:</strong> JVP tidak meningkat, karotis simetris, bruit karotis (-)</li>
+              <li><strong>Thoraks:</strong> Simetris, vesikuler, ronki (-) basah halus basal (curiga gagal jantung?), wheezing (-)</li>
+              <li><strong>Jantung:</strong> Iktus kordi tidak bergeser, S1-S2 normal, murmur (-), gallop S4 (+) — LV compliance ↓</li>
+              <li><strong>Abdomen:</strong> Supel, nyeri tekan (-), bruit abdominal (-)</li>
+              <li><strong>Ekstremitas:</strong> Akral hangat, edema (-), pulsasi perifer teraba, ulkus diabetik (-)</li>
+              <li><strong>Kulit:</strong> Xanthelasma palpebra, tidak ada tanda xanthoma tendon</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Fisik Lokalis", step: "IPM-5",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🫀</span> Pemeriksaan Kardiovaskular Khusus</h3>
+            <ul>
+              <li><strong>Palpasi:</strong> Iktus kordi normal (tidak ada LVH signifikan), thrill (-)</li>
+              <li><strong>Auskultasi:</strong> S1 normal, S2 normal, S4 gallop (+), murmur sistolik (-)</li>
+              <li><strong>Manuver Provokasi:</strong> Nyeri dapat dicetus dengan aktivitas; pemeriksaan saat istirahat umumnya normal</li>
+              <li><strong>Skrining ABI:</strong> 0.95 — normal (PAD tidak signifikan)</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Penunjang", step: "IPM-6",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🔬</span> Hasil Pemeriksaan Penunjang</h3>
+            <div class="media-box">
+              <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+                <tr style="background:#2c3e50;color:white"><th style="padding:6px;text-align:left">Pemeriksaan</th><th style="padding:6px;text-align:left">Hasil</th><th style="padding:6px;text-align:left">Normal</th></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">Hb</td><td style="padding:6px">13.5 g/dL</td><td style="padding:6px">13-17</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">GDP</td><td style="padding:6px;font-weight:700;color:#e67e22">168 mg/dL</td><td style="padding:6px">&lt;100</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">Kolesterol Total</td><td style="padding:6px;font-weight:700;color:#e67e22">260 mg/dL</td><td style="padding:6px">&lt;200</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">LDL</td><td style="padding:6px;font-weight:700;color:#e67e22">180 mg/dL</td><td style="padding:6px">&lt;130</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">HDL</td><td style="padding:6px">35 mg/dL</td><td style="padding:6px">&gt;40</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">Troponin I</td><td style="padding:6px">0.01 ng/mL</td><td style="padding:6px">&lt;0.04</td></tr>
+                <tr><td style="padding:6px">Kreatinin</td><td style="padding:6px">1.2 mg/dL</td><td style="padding:6px">0.7-1.3</td></tr>
+              </table>
+            </div>
+            <h3 style="margin-top:12px">Pemeriksaan Khusus</h3>
+            <ul>
+              <li><strong>EKG saat istirahat:</strong> Normal; dapat ditemukan ST depresi 0.5-1mm, T inverted (simtom iskemia)</li>
+              <li><strong>EKG Treadmill (Stress Test):</strong> (+) ST depresi ≥1mm pada beban 7 METs → iskemia anterior</li>
+              <li><strong>Foto Thoraks:</strong> Normal, tidak ada kardiomegali</li>
+              <li><strong>Ekokardiografi:</strong> Hipokinesis dinding anterior ringan, EF 55%</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Diagnosis Banding", step: "IPM-7",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🤔</span> Diagnosis Banding</h3>
+            <div class="dd-list" id="ddList1"></div>
+          </div>
+        `
+      },
+      { title: "Diagnosis Kerja", step: "IPM-8",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">✅</span> Diagnosis Kerja</h3>
+            <div class="media-box" style="background:#f0faf0;border-color:#27ae60">
+              <h4 style="color:#27ae60;font-size:1.1rem">Angina Pektoris Stabil — CCS Kelas II</h4>
+              <p style="margin-top:8px;font-size:0.9rem">dengan DM tipe 2, hipertensi, dan dislipidemia</p>
+              <p style="margin-top:4px;font-size:0.8rem;color:var(--text-light)">
+                ICD-10: I20.8 • CCS II (angina saat aktivitas berat) • Risiko Duke Treadmill: Sedang
+              </p>
+            </div>
+          </div>
+        `
+      },
+      { title: "Tatalaksana Umum", step: "IPM-9",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">💊</span> Tatalaksana Farmakologis</h3>
+            <ul>
+              <li><strong>Anti-iskemia:</strong> ISDN sublingual 5 mg (saat serangan) + Bisoprolol 2.5-5 mg/hari (β-blocker) — target HR 55-60 x/menit</li>
+              <li><strong>Antitrombotik:</strong> Aspirin 80-100 mg/hari — mencegah trombosis</li>
+              <li><strong>Statin intensitas tinggi:</strong> Atorvastatin 40 mg/hari (target LDL &lt;100 mg/dL atau &lt;70 mg/dL jika risiko tinggi)</li>
+              <li><strong>ACEi/ARB:</strong> Ramipril 5 mg/hari (kontrol TD + remodeling ventrikel)</li>
+              <li><strong>Antidiabetik:</strong> Metformin 500 mg 2x/hari (sesuai GD)</li>
+            </ul>
+          </div>
+          <div class="section">
+            <h3><span class="emoji">🏋️</span> Tatalaksana Non-Farmakologis</h3>
+            <ul>
+              <li>Diet jantung sehat: rendah lemak jenuh, tinggi serat, rendah garam</li>
+              <li>Latihan aerobik: 30-45 menit, 5x/minggu (hindari aktivitas berat mendadak)</li>
+              <li>Berhenti merokok — konseling + NRT (Nicotine Replacement Therapy)</li>
+              <li>Kontrol glikemik: target HbA1c &lt;7%</li>
+              <li>Manajemen stres dan pola tidur teratur</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Contoh Resep", step: "IPM-10",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">📝</span> Contoh Resep</h3>
+            <div class="prescription-box">
+              <div class="rx-header"><span class="rx">R / Resep</span><span>Puskesmas Sehat • dr. Andi</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>ISDN 5 mg sublingual tab No. X<br>S 1 dd 1 tab prn (saat nyeri dada)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Bisoprolol 5 mg tab No. XXX<br>S 1 dd ½ - 1 tab (pagi)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Aspirin 80 mg tab No. XXX<br>S 1 dd 1 tab (setelah makan)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Atorvastatin 40 mg tab No. XXX<br>S 1 dd 1 tab (malam hari)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Ramipril 5 mg tab No. XXX<br>S 1 dd 1 tab (pagi)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Metformin 500 mg tab No. XXX<br>S 2 dd 1 tab (pagi & sore setelah makan)</span></div>
+              <div class="rx-footer"><p>Pro: Tn. B (58 th) — Paraf: — Tgl:</p></div>
+            </div>
+          </div>
+        `
+      },
+      { title: "Tatalaksana Khusus", step: "IPM-11",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🏨</span> Tatalaksana Khusus & Rujukan</h3>
+            <ul>
+              <li><strong>Rujukan ke Spesialis Jantung:</strong> Untuk angiografi koroner jika angina refrakter atau stres test risiko tinggi</li>
+              <li><strong>PCI (Percutaneous Coronary Intervention):</strong> Stenting pada stenosis signifikan (&gt;70%)</li>
+              <li><strong>CABG:</strong> Jika penyakit 3 pembuluh darah atau left main disease</li>
+              <li><strong>Indikasi Rujukan:</strong> Angina tidak stabil, IMA, gagal jantung, aritmia maligna</li>
+              <li><strong>Rehabilitasi jantung:</strong> Program latihan terstruktur pasca revaskularisasi</li>
+            </ul>
+          </div>
+          <div class="media-box" style="background:#fff3e0;border-color:#ff9800">
+            <p style="font-weight:600;color:#e65100">⚠️ INDIKASI RUJUKAN PASIEN PJK DI FKTP</p>
+            <p style="font-size:0.85rem;margin-top:4px">1. Angina tidak stabil / IMA • 2. Gagal jantung akut • 3. Aritmia maligna • 4. Stres test risiko tinggi • 5. Refrakter terhadap terapi optimal</p>
+          </div>
+        `
+      },
+      { title: "Edukasi", step: "IPM-12",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">📢</span> Edukasi Pasien</h3>
+            <ul>
+              <li><strong>Penggunaan ISDN:</strong> Letakkan di bawah lidah saat nyeri, maks 3 dosis 5 menit. Jika tidak reda setelah 3 dosis → segera ke IGD (curiga IMA)</li>
+              <li><strong>Hindari pemicu angina:</strong> Aktivitas berat, stres emosi, makan berlebihan, cuaca ekstrem</li>
+              <li><strong>Kontrol faktor risiko:</strong> Berhenti merokok, kontrol DM, TD, dan kolesterol</li>
+              <li><strong>Kepatuhan obat:</strong> Jangan hentikan aspirin/statín tanpa konsultasi</li>
+              <li><strong>Kenali tanda bahaya:</strong> Nyeri dada &gt;20 menit, tidak mereda dengan ISDN, disertai sesak berat/mual/penurunan kesadaran</li>
+              <li><strong>Aktivitas:</strong> Hindari olahraga berat, jalan kaki 30 menit/hari jika tidak nyeri</li>
+              <li><strong>Kontrol rutin:</strong> Setiap 2-4 minggu hingga stabil, kemudian 3-6 bulan</li>
+            </ul>
+          </div>
+        `
+      }
+    ]
+  },
+  // 3. INFARK MIOKARD AKUT
+  {
+    id: 2, name: "Infark Miokard Akut",
+    pages: [
+      { title: "Skenario Kasus", step: "IPM-1",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🏥</span> Skenario</h3>
+            <p>Seorang laki-laki, 55 tahun, dibawa ke IGD Puskesmas karena nyeri dada hebat sejak 2 jam yang lalu. Nyeri seperti ditusuk dan ditekan di daerah retrosternal, menjalar ke lengan kiri dan punggung. Pasien juga mengeluh sesak napas berat, mual, dan keringat dingin (diaforesis). Pasien merokok 2 bungkus/hari sejak 30 tahun, riwayat hipertensi dan DM tidak terkontrol. Pagi ini pasien marah-marah karena masalah keluarga lalu tiba-tiba merasakan nyeri dada. Pasien belum minum obat apapun.</p>
+          </div>
+          <div class="media-box">
+            <svg viewBox="0 0 400 130" style="max-width:100%">
+              <rect width="400" height="130" fill="#fff5f5" rx="12"/>
+              <text x="200" y="22" text-anchor="middle" fill="#c0392b" font-weight="700" font-size="14">PATOFISIOLOGI STEMI</text>
+              <rect x="80" y="32" width="60" height="50" fill="#c0392b" rx="4" opacity="0.9"/>
+              <text x="110" y="52" text-anchor="middle" fill="white" font-weight="700" font-size="9">PLAK</text>
+              <text x="110" y="64" text-anchor="middle" fill="white" font-size="8">Ruptur</text>
+              <text x="110" y="76" text-anchor="middle" fill="white" font-size="8">Trombus</text>
+              <line x1="140" y1="57" x2="170" y2="57" stroke="#e74c3c" stroke-width="2" stroke-dasharray="4"/>
+              <text x="215" y="45" text-anchor="middle" fill="#c0392b" font-size="11">Oklusi total arteri koroner</text>
+              <text x="215" y="62" text-anchor="middle" fill="#555" font-size="10">→ Nekrosis miokard transmural</text>
+              <text x="215" y="79" text-anchor="middle" fill="#555" font-size="10">→ ↑ Troponin, ST elevasi</text>
+              <text x="215" y="96" text-anchor="middle" fill="#555" font-size="10">→ Komplikasi: gagal jantung, syok, aritmia</text>
+              <text x="200" y="120" text-anchor="middle" fill="#999" font-size="9">Gambar 3.1 — Konsep STEMI dari ruptur plak hingga nekrosis</text>
+            </svg>
+          </div>
+        `
+      },
+      { title: "Gejala", step: "IPM-2",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🔍</span> Gejala Klinis</h3>
+            <ul>
+              <li><strong>Nyeri dada retrosternal:</strong> Seperti ditekan berat, diremas, atau seperti ditusuk; onset mendadak</li>
+              <li>Penjalaran ke lengan kiri, rahang, leher, punggung, atau epigastrium</li>
+              <li>Durasi &gt;20 menit dan tidak mereda dengan ISDN/istirahat</li>
+              <li>Sesak napas (dyspnea) — akibat gagal ventrikel kiri akut</li>
+              <li>Mual, muntah, diaforesis (keringat dingin)</li>
+              <li>Rasa lemas ekstrem, palpitasi, atau pingsan (syncope)</li>
+              <li>Gelisah dan rasa seperti akan mati (impending doom)</li>
+              <li>Pada lansia/DM: gejala tidak khas (sesak, lemas, epigastric discomfort saja)</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Karakteristik TTV", step: "IPM-3",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🩺</span> Vital Signs</h3>
+            <div class="media-box">
+              <table style="width:100%;border-collapse:collapse;font-size:0.88rem">
+                <tr style="background:#c0392b;color:white"><th>Parameter</th><th>Nilai</th><th>Keterangan</th></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">TD</td><td style="padding:8px">100/60 mmHg</td><td style="padding:8px">Hipotensi — syok kardiogenik impending</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Nadi</td><td style="padding:8px">110 x/menit</td><td style="padding:8px">Takikardi sinus</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Pernapasan</td><td style="padding:8px">28 x/menit</td><td style="padding:8px">Takipnea — edema paru akut</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Suhu</td><td style="padding:8px">36.8°C</td><td style="padding:8px">Subfebris (reaksi inflamasi)</td></tr>
+                <tr><td style="padding:8px">SpO₂</td><td style="padding:8px;font-weight:700;color:#e74c3c">88%</td><td style="padding:8px">Hipoksemia — butuh O₂</td></tr>
+              </table>
+            </div>
+          </div>
+          <div class="section">
+            <h3><span class="emoji">⚠️</span> Killip Classification</h3>
+            <ul>
+              <li><strong>Killip I:</strong> Tidak ada gagal jantung</li>
+              <li><strong>Killip II:</strong> Ronki basah &lt;50% lapang paru, S3 gallop</li>
+              <li><strong>Killip III:</strong> Edema paru akut (ronki &gt;50%)</li>
+              <li><strong>Killip IV:</strong> Syok kardiogenik (TD &lt;90 + hipoperfusi) ← pasien ini</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Head to Toe", step: "IPM-4",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">👤</span> Pemeriksaan Fisik Head-to-Toe</h3>
+            <ul>
+              <li><strong>Penampilan:</strong> Gelisah, diaforesis, pucat, takipnea</li>
+              <li><strong>Kepala/Leher:</strong> JVP meningkat (curiga gagal jantung kanan)</li>
+              <li><strong>Thoraks:</strong> Ronki basah halus basal bilateral (edema paru akut), wheezing (-)</li>
+              <li><strong>Jantung:</strong> Gallop S3 (+) — gagal ventrikel kiri, murmur regurgitasi mitral jika ada disfungsi otot papilaris, friction rub (-)</li>
+              <li><strong>Abdomen:</strong> Supel, nyeri tekan epigastrium (akibat iskemia dinding inferior), hepar tidak teraba membesar</li>
+              <li><strong>Ekstremitas:</strong> Akral dingin, capillary refill &gt;3 detik, pulsasi perifer lemah (syok kardiogenik)</li>
+              <li><strong>Neurologis:</strong> GCS 14 (somnolen ringan — hipoperfusi serebral)</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Fisik Lokalis", step: "IPM-5",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🫀</span> Pemeriksaan Kardiovaskular Khusus</h3>
+            <ul>
+              <li><strong>Auskultasi:</strong> Gallop S3 (+), S4 (+), murmur regurgitasi mitral (disfungsi papilaris), friction rub perikardial (-)</li>
+              <li><strong>Palpasi:</strong> Iktus kordi sulit dinilai (hipotensi), thrill (-)</li>
+              <li><strong>Tanda-tanda syok:</strong> Hipotensi (TD &lt;90/60), nadi cepat dan lemah, akral dingin, oliguria</li>
+              <li><strong>Pada IMA inferior:</strong> Bradikardia, hipotensi (refleks Bezold-Jarisch)</li>
+            </ul>
+          </div>
+          <div class="media-box">
+            <div class="ecg-container"><canvas id="ecgCanvas2"></canvas></div>
+            <div class="caption">Gambar 3.2 — EKG STEMI anterior: ST elevasi lead V1-V4</div>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Penunjang", step: "IPM-6",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🔬</span> Hasil Pemeriksaan Penunjang</h3>
+            <div class="media-box">
+              <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+                <tr style="background:#2c3e50;color:white"><th>Pemeriksaan</th><th>Hasil</th><th>Normal</th></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">Troponin I</td><td style="padding:6px;font-weight:700;color:#c0392b">15.0 ng/mL</td><td style="padding:6px">&lt;0.04</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">CK-MB</td><td style="padding:6px;font-weight:700;color:#c0392b">85 U/L</td><td style="padding:6px">&lt;25</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">Kreatinin</td><td style="padding:6px">1.4 mg/dL</td><td style="padding:6px">0.7-1.3</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">GDP</td><td style="padding:6px;font-weight:700;color:#e67e22">210 mg/dL</td><td style="padding:6px">&lt;100</td></tr>
+                <tr><td style="padding:6px">Hb</td><td style="padding:6px">14.0 g/dL</td><td style="padding:6px">13-17</td></tr>
+              </table>
+            </div>
+            <h3 style="margin-top:12px">Pemeriksaan Khusus</h3>
+            <ul>
+              <li><strong>EKG:</strong> ST elevasi ≥2mm di V1-V4 (STEMI anterior), gelombang Q patologis, resiprokal ST depresi di II, III, aVF</li>
+              <li><strong>Foto Thoraks:</strong> Edema paru akut (redistribusi vaskular, Kerley B lines), kardiomegali</li>
+              <li><strong>Ekokardiografi:</strong> Akinesis dinding anterior, EF 30% (sangat rendah)</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Diagnosis Banding", step: "IPM-7",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🤔</span> Diagnosis Banding</h3>
+            <div class="dd-list" id="ddList2"></div>
+          </div>
+        `
+      },
+      { title: "Diagnosis Kerja", step: "IPM-8",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">✅</span> Diagnosis Kerja</h3>
+            <div class="media-box" style="background:#f0faf0;border-color:#27ae60">
+              <h4 style="color:#27ae60;font-size:1.1rem">ST-Elevation Myocardial Infarction (STEMI) Anterior</h4>
+              <p style="margin-top:8px;font-size:0.9rem">Killip III (Edema Paru Akut) — onset &lt;2 jam</p>
+              <p style="margin-top:4px;font-size:0.8rem;color:var(--text-light)">
+                ICD-10: I21.0 • Troponin ↑↑ • STEMI anterior luas
+              </p>
+            </div>
+          </div>
+        `
+      },
+      { title: "Tatalaksana Umum", step: "IPM-9",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">💊</span> Tatalaksana Farmakologis</h3>
+            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px">Prinsip MONA + Reperfusi — <strong>SEMAKIN CEPAT SEMAKIN BAIK</strong></p>
+            <ul>
+              <li><strong>Morphin:</strong> 2-4 mg IV (analgesik + mengurangi preload)</li>
+              <li><strong>O₂:</strong> 2-4 L/min, target SpO₂ ≥94%</li>
+              <li><strong>Nitrat:</strong> ISDN sublingual 5 mg (hati-hati jika hipotensi/syok)</li>
+              <li><strong>Aspirin:</strong> 160-325 mg kunyah (loading dose)</li>
+              <li><strong>Clopidogrel:</strong> 300-600 mg loading dose (antiplatelet ganda)</li>
+              <li><strong>Heparin:</strong> 5000 IU IV bolus di IGD RS rujukan</li>
+              <li><strong>Statin:</strong> Atorvastatin 80 mg (high-intensity statin) — segera</li>
+              <li><strong>β-blocker:</strong> Metoprolol 25-50 mg oral (jika tidak kontraindikasi)</li>
+            </ul>
+          </div>
+          <div class="section">
+            <h3><span class="emoji">🏋️</span> Tatalaksana Non-Farmakologis</h3>
+            <ul>
+              <li>Bed rest total — kurangi kerja miokard</li>
+              <li>Tirah baring dengan kepala elevasi 30° jika sesak</li>
+              <li>Monitor EKG kontinu — risiko aritmia maligna (VT/VF)</li>
+              <li>Pasang jalur IV</li>
+              <li>Puasa sampai reperfusi</li>
+            </ul>
+          </div>
+          <div class="media-box" style="background:#fff3e0;border-color:#ff9800">
+            <p style="font-weight:600;color:#e65100">⚠️ ALUR TATALAKSANA IMA DI FKTP (RUJUKAN)</p>
+            <p style="font-size:0.85rem;margin-top:4px">1. Diagnosis cepat (EKG + Troponin) → 2. Aspirin + Clopidogrel loading → 3. Rujuk ke RS dengan fasilitas PCI → 4. Target door-to-balloon &lt;90 menit atau fibrinolitik &lt;30 menit jika &gt;120 menit ke PCI</p>
+          </div>
+        `
+      },
+      { title: "Contoh Resep", step: "IPM-10",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">📝</span> Contoh Resep (Post-IMA stabil)</h3>
+            <div class="prescription-box">
+              <div class="rx-header"><span class="rx">R / Resep</span><span>Puskesmas Sehat</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Aspirin 80 mg tab No. XXX<br>S 1 dd 1 tab (setelah makan)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Clopidogrel 75 mg tab No. XXX<br>S 1 dd 1 tab</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Atorvastatin 80 mg tab No. XXX<br>S 1 dd 1 tab (malam)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Bisoprolol 2.5 mg tab No. XXX<br>S 1 dd 1 tab (pagi)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Ramipril 5 mg tab No. XXX<br>S 1 dd 1 tab (pagi)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>ISDN 5 mg sublingual tab No. X<br>S 1 dd 1 tab prn</span></div>
+              <div class="rx-footer"><p>Pro: Tn. C (55 th) — DAPT 12 bulan — Paraf:</p></div>
+            </div>
+          </div>
+        `
+      },
+      { title: "Tatalaksana Khusus", step: "IPM-11",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🏨</span> Tatalaksana Khusus & Rujukan</h3>
+            <ul>
+              <li><strong>RUJUKAN SEGERA ke RS dengan fasilitas Cath Lab</strong></li>
+              <li><strong>Reperfusi:</strong> PCI primer (gold standard) target door-to-balloon &lt;90 menit</li>
+              <li><strong>Fibrinolitik:</strong> Jika waktu ke PCI &gt;120 menit — Beri Streptokinase 1.5 juta IU IV/60 menit atau TNK 0.5 mg/kg IV bolus</li>
+              <li><strong>Kontraindikasi fibrinolitik:</strong> Riwayat stroke hemoragik, trauma besar, perdarahan aktif, operasi besar &lt;3 minggu, TD &gt;180/110</li>
+              <li><strong>Komplikasi:</strong> Syok kardiogenik (IABP + inotropik), aritmia (VT/VF → DC shock), gagal jantung (diuretik + vasodilator)</li>
+              <li><strong>Rehabilitasi:</strong> Fase I (RS: mobilisasi bertahap), Fase II (pasca-RS: program latihan)</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Edukasi", step: "IPM-12",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">📢</span> Edukasi Pasien & Keluarga</h3>
+            <ul>
+              <li><strong>Kenali gejala serangan jantung:</strong> Nyeri dada &gt;20 menit, tidak mereda, disertai sesak/mual/dingin → segera ke IGD</li>
+              <li><strong>Kepatuhan DAPT:</strong> Aspirin + Clopidogrel minimal 12 bulan — jangan dihentikan tanpa konsultasi (risiko stent thrombosis)</li>
+              <li><strong>Modifikasi gaya hidup mutlak:</strong> Berhenti merokok, diet jantung, olahraga bertahap</li>
+              <li><strong>Kontrol rutin:</strong> TD, gula darah, kolesterol setiap 3 bulan</li>
+              <li><strong>Rehabilitasi jantung:</strong> Ikuti program yang direkomendasikan</li>
+              <li><strong>Tanda bahaya pasca-IMA:</strong> Nyeri dada berulang, sesak napas memburuk, palpitasi, pingsan</li>
+              <li><strong>Obat-obatan:</strong> Bawa ISDN setiap saat untuk berjaga-jaga</li>
+              <li><strong>Kembali kerja:</strong> Diskusikan dengan dokter — umumnya 4-6 minggu pasca-IMA tanpa komplikasi</li>
+            </ul>
+          </div>
+        `
+      }
+    ]
+  }
+  // 4. GAGAL JANTUNG KONGESTIF
+  {
+    id: 3, name: "Gagal Jantung Kongestif",
+    pages: [
+      { title: "Skenario Kasus", step: "IPM-1",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🏥</span> Skenario</h3>
+            <p>Seorang perempuan, 65 tahun, datang ke Puskesmas dengan keluhan sesak napas yang memberat sejak 2 minggu terakhir. Sesak dirasakan saat melakukan aktivitas ringan (berjalan 50 meter) dan saat berbaring telentang (ortopnea). Pasien juga mengeluh bengkak di kedua tungkai yang bertambah sore hari. Riwayat hipertensi 10 tahun (tidak terkontrol), DM tipe 2, dan pernah dirawat karena serangan jantung 2 tahun lalu. Pasien juga sering terbangun tengah malam karena sesak (paroxysmal nocturnal dyspnea).</p>
+          </div>
+          <div class="media-box">
+            <svg viewBox="0 0 400 130" style="max-width:100%">
+              <rect width="400" height="130" fill="#fef0ef" rx="12"/>
+              <text x="200" y="22" text-anchor="middle" fill="#c0392b" font-weight="700" font-size="13">PATOFISIOLOGI GAGAL JANTUNG KONGESTIF</text>
+              <text x="200" y="42" text-anchor="middle" fill="#555" font-size="10">Penurunan kontraktilitas → ↓ CO → Aktivasi neurohormonal (RAAS, SNS)</text>
+              <rect x="30" y="52" width="150" height="60" fill="#fff" stroke="#c0392b" rx="6"/>
+              <text x="105" y="70" text-anchor="middle" fill="#c0392b" font-weight="600" font-size="10">Gagal Jantung Kiri</text>
+              <text x="105" y="84" text-anchor="middle" fill="#555" font-size="9">Kongesti paru → Ortopnea</text>
+              <text x="105" y="96" text-anchor="middle" fill="#555" font-size="9">↓ CO → Fatigue, ↓ perfusi</text>
+              <rect x="220" y="52" width="150" height="60" fill="#fff" stroke="#2c3e50" rx="6"/>
+              <text x="295" y="70" text-anchor="middle" fill="#2c3e50" font-weight="600" font-size="10">Gagal Jantung Kanan</text>
+              <text x="295" y="84" text-anchor="middle" fill="#555" font-size="9">Kongesti sistemik → Edema</text>
+              <text x="295" y="96" text-anchor="middle" fill="#555" font-size="9">↑ JVP, hepatomegali, asites</text>
+              <text x="200" y="122" text-anchor="middle" fill="#999" font-size="9">Gambar 4.1 — Konsep gagal jantung kiri vs kanan</text>
+            </svg>
+          </div>
+        `
+      },
+      { title: "Gejala", step: "IPM-2",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🔍</span> Gejala Klinis</h3>
+            <ul>
+              <li><strong>Sesak napas (dyspnea):</strong> Saat aktivitas, ortopnea, PND (bangun tidur karena sesak)</li>
+              <li><strong>Fatigue/lemas:</strong> Akibat curah jantung rendah</li>
+              <li><strong>Edema tungkai:</strong> Simetris, pitting edema, bertambah sore</li>
+              <li><strong>Batuk:</strong> Kering atau produktif (dahak berbusa/merah muda — edema paru akut)</li>
+              <li><strong>Nokturia:</strong> Peningkatan produksi urin malam hari (aliran ginjal membaik saat tidur)</li>
+              <li><strong>Penurunan nafsu makan:</strong> Kongesti hepar dan saluran cerna</li>
+              <li><strong>Asites/perut membuncit:</strong> Pada gagal jantung kanan lanjut</li>
+            </ul>
+          </div>
+          <div class="section">
+            <h3><span class="emoji">📋</span> Klasifikasi NYHA Fungsional</h3>
+            <ul>
+              <li><strong>Kelas I:</strong> Tanpa batasan aktivitas</li>
+              <li><strong>Kelas II:</strong> Batasan ringan (aktivitas berat memicu gejala) — pasien ini</li>
+              <li><strong>Kelas III:</strong> Batasan berat (aktivitas ringan memicu gejala)</li>
+              <li><strong>Kelas IV:</strong> Gejala saat istirahat</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Karakteristik TTV", step: "IPM-3",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🩺</span> Vital Signs</h3>
+            <div class="media-box">
+              <table style="width:100%;border-collapse:collapse;font-size:0.88rem">
+                <tr style="background:#c0392b;color:white"><th>Parameter</th><th>Nilai</th><th>Keterangan</th></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">TD</td><td style="padding:8px">140/90 mmHg</td><td style="padding:8px">Masih hipertensi</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Nadi</td><td style="padding:8px">104 x/menit</td><td style="padding:8px">Takikardi (kompensasi ↓ CO)</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Pernapasan</td><td style="padding:8px">26 x/menit</td><td style="padding:8px">Takipnea — kongesti paru</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Suhu</td><td style="padding:8px">36.6°C</td><td style="padding:8px">Afebris</td></tr>
+                <tr><td style="padding:8px">SpO₂</td><td style="padding:8px;font-weight:700;color:#e67e22">92%</td><td style="padding:8px">Desaturasi ringan</td></tr>
+              </table>
+            </div>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Head to Toe", step: "IPM-4",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">👤</span> Pemeriksaan Head-to-Toe</h3>
+            <ul>
+              <li><strong>Penampilan:</strong> Dispnuik, ortopnea (duduk lebih nyaman), sianosis sirkumoral (-)</li>
+              <li><strong>Leher:</strong> JVP meningkat (distensi vena jugularis) — signifikan pada gagal jantung kanan</li>
+              <li><strong>Thoraks:</strong> Ronki basah halus basal bilateral (kongesti paru), wheezing kadang (cardiac asthma)</li>
+              <li><strong>Jantung:</strong> Gallop S3 (+) — suara ventrikel kiri gagal, murmur regurgitasi mitral (dilatasi annulus), iktus kordi bergeser ke lateral dan difus</li>
+              <li><strong>Abdomen:</strong> Hepatomegali (hati teraba 4 cm bawah arcus costae), nyeri tekan (+), asites (shifting dullness +)</li>
+              <li><strong>Ekstremitas:</strong> Edema tungkai simetris pitting edema +++, akral dingin, pulsasi perifer simetris</li>
+              <li><strong>Kulit:</strong> Akral dingin, sianosis (-), turgor normal</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Fisik Lokalis", step: "IPM-5",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🫀</span> Pemeriksaan Kardiovaskular Khusus</h3>
+            <ul>
+              <li><strong>Palpasi:</strong> Iktus kordi bergeser ke lateral dan inferior (kardiomegali), thrill (-)</li>
+              <li><strong>Auskultasi:</strong> Gallop S3 (+) — patognomonis gagal jantung, S4 dapat menyertai. Murmur regurgitasi mitral sistolik (fungsional).</li>
+              <li><strong>Hepatojugular Reflux (+):</strong> Tekan hepar → JVP meningkat → konfirmasi gagal jantung kanan</li>
+              <li><strong>Perkusi:</strong> Batas jantung kiri melebar (kardiomegali), efusi pleura (-)</li>
+              <li><strong>Pulsasi:</strong> Alternating pulse (pulsus alternans) — tanda gagal jantung berat</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Penunjang", step: "IPM-6",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🔬</span> Hasil Pemeriksaan Penunjang</h3>
+            <div class="media-box">
+              <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+                <tr style="background:#2c3e50;color:white"><th>Pemeriksaan</th><th>Hasil</th><th>Normal</th></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">BNP / NT-proBNP</td><td style="padding:6px;font-weight:700;color:#c0392b">850 pg/mL</td><td style="padding:6px">&lt;100</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">Kreatinin</td><td style="padding:6px">1.3 mg/dL</td><td style="padding:6px">0.7-1.3</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">GDP</td><td style="padding:6px;font-weight:700;color:#e67e22">156 mg/dL</td><td style="padding:6px">&lt;100</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">Hb</td><td style="padding:6px">11.2 g/dL</td><td style="padding:6px">12-15</td></tr>
+                <tr><td style="padding:6px">Albumin</td><td style="padding:6px">3.4 g/dL</td><td style="padding:6px">3.5-5.0</td></tr>
+              </table>
+            </div>
+            <h3 style="margin-top:12px">Pemeriksaan Khusus</h3>
+            <ul>
+              <li><strong>EKG:</strong> LVH, gelombang Q patologis (infark lama), sinus takikardia</li>
+              <li><strong>Foto Thoraks:</strong> Kardiomegali (CTR &gt;0.6), redistribusi vaskular, Kerley B lines, efusi pleura kanan</li>
+              <li><strong>Ekokardiografi:</strong> EF 35% (HFrEF), akinesis dinding anterior, regurgitasi mitral derajat sedang</li>
+            </ul>
+          </div>
+          <div class="media-box">
+            <div class="ecg-container"><canvas id="ecgCanvas3"></canvas></div>
+            <div class="caption">Gambar 4.2 — EKG gagal jantung: LVH + Q patologis (infark lama)</div>
+          </div>
+        `
+      },
+      { title: "Diagnosis Banding", step: "IPM-7",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🤔</span> Diagnosis Banding</h3>
+            <div class="dd-list" id="ddList3"></div>
+          </div>
+        `
+      },
+      { title: "Diagnosis Kerja", step: "IPM-8",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">✅</span> Diagnosis Kerja</h3>
+            <div class="media-box" style="background:#f0faf0;border-color:#27ae60">
+              <h4 style="color:#27ae60;font-size:1.1rem">Gagal Jantung Kongestif (HFrEF)</h4>
+              <p style="margin-top:8px;font-size:0.9rem">NYHA Kelas III — dengan hipertensi, DM tipe 2, dan post-IMA</p>
+              <p style="margin-top:4px;font-size:0.8rem;color:var(--text-light)">
+                ICD-10: I50.0 • EF 35% • BNP ↑ • Kongesti sistemik + pulmonal
+              </p>
+            </div>
+          </div>
+        `
+      },
+      { title: "Tatalaksana Umum", step: "IPM-9",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">💊</span> Tatalaksana Farmakologis (HFrEF)</h3>
+            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px">Prinsip NEUROHORMONAL BLOCKADE — Triple Therapy</p>
+            <ul>
+              <li><strong>Diuretik (Dekompresi):</strong> Furosemid 40 mg IV/ oral — atasi kongesti</li>
+              <li><strong>ACEi/ARB:</strong> Ramipril 2.5-5 mg/hari — menghambat remodeling</li>
+              <li><strong>β-blocker:</strong> Bisoprolol 1.25-5 mg/hari — ↓ denyut jantung, proteksi</li>
+              <li><strong>MRA:</strong> Spironolakton 12.5-25 mg/hari — anti-aldosteron</li>
+              <li><strong>SGLT-2i:** Empagliflozin 10 mg/hari — benefit kardiovaskular</li>
+              <li><strong>Digoxin:</strong> 0.125 mg/hari jika masih takikardi/fibrilasi atrium</li>
+            </ul>
+          </div>
+          <div class="section">
+            <h3><span class="emoji">🏋️</span> Tatalaksana Non-Farmakologis</h3>
+            <ul>
+              <li>Restriksi cairan &lt;1.5-2 L/hari</li>
+              <li>Diet rendah garam (&lt;3g NaCl/hari)</li>
+              <li>Monitor berat badan harian (kenaikan &gt;2 kg/3 hari → retensi cairan)</li>
+              <li>Posisi semi-Fowler saat sesak</li>
+              <li>Rehabilitasi jantung bertahap</li>
+              <li>Manajemen komorbid (DM, hipertensi, anemia)</li>
+              <li>Vaksinasi influenza dan pneumonia</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Contoh Resep", step: "IPM-10",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">📝</span> Contoh Resep</h3>
+            <div class="prescription-box">
+              <div class="rx-header"><span class="rx">R / Resep</span><span>Puskesmas Sehat</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Furosemid 40 mg tab No. XXX<br>S 2 dd 1 tab (pagi & sore)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Ramipril 5 mg tab No. XXX<br>S 1 dd 1 tab (pagi)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Bisoprolol 2.5 mg tab No. XXX<br>S 1 dd ½ tab (pagi) — titrasi</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Spironolakton 25 mg tab No. XXX<br>S 1 dd 1 tab (pagi)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Empagliflozin 10 mg tab No. XXX<br>S 1 dd 1 tab (pagi)</span></div>
+              <div class="rx-footer"><p>Pro: Ny. D (65 th) — Paraf: — Tgl:</p></div>
+            </div>
+            <p style="font-size:0.8rem;color:var(--text-light);margin-top:6px">Catatan: Monitor K+ dan kreatinin rutin (risiko hiperkalemia pada MRA + ACEi).</p>
+          </div>
+        `
+      },
+      { title: "Tatalaksana Khusus", step: "IPM-11",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🏨</span> Tatalaksana Khusus & Rujukan</h3>
+            <ul>
+              <li><strong>RUJUKAN:</strong> Jika NYHA III-IV refrakter, EF &lt;35%, atau kadar BNP terus meningkat</li>
+              <li><strong>Kolaborasi:</strong> Spesialis jantung + gizi klinik</li>
+              <li><strong>CRT-D:</strong> Cardiac Resynchronization Therapy dengan defibrilator jika LBBB & EF ≤35%</li>
+              <li><strong>ICD:</strong> Untuk pencegahan kematian mendadak</li>
+              <li><strong>Transplantasi jantung:</strong> Untuk kasus refrakter</li>
+              <li><strong>Home monitoring:</strong> Berat badan, TD, status kongesti</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Edukasi", step: "IPM-12",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">📢</span> Edukasi Pasien</h3>
+            <ul>
+              <li><strong>Timbang berat badan setiap pagi:</strong> Kenaikan &gt;2 kg dalam 3 hari → hubungi dokter</li>
+              <li><strong>Batasi garam & cairan:</strong> Garam &lt;3g/hari, cairan &lt;1.5-2 L/hari</li>
+              <li><strong>Kenali tanda dekompensasi:</strong> Sesak memburuk, edema bertambah, batuk malam, berat naik drastis</li>
+              <li><strong>Kepatuhan obat:</strong> Jangan hentikan ACEi/β-blocker tanpa konsultasi</li>
+              <li><strong>Aktivitas:</strong> Istirahat cukup, latihan ringan (jalan kaki) jika stabil</li>
+              <li><strong>Kontrol rutin:</strong> TD, nadi, berat badan, BNP, fungsi ginjal tiap 1-3 bulan</li>
+              <li><strong>Tanda bahaya:</strong> Sesak berat saat istirahat, batuk berbusa merah muda, penurunan kesadaran → IGD</li>
+            </ul>
+          </div>
+        `
+      }
+    ]
+  },
+  // 5. DISLIPIDEMIA
+  {
+    id: 4, name: "Dislipidemia",
+    pages: [
+      { title: "Skenario Kasus", step: "IPM-1",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🏥</span> Skenario</h3>
+            <p>Seorang laki-laki, 45 tahun, datang untuk medical check-up. Tidak ada keluhan spesifik. Pasien memiliki riwayat keluarga: ayah dan paman meninggal karena serangan jantung usia 50-an. Pasien mengaku sering makan makanan berlemak (gorengan, jeroan, fast food) dan tidak pernah berolahraga. Pasien juga merokok 1 bungkus/hari sejak 20 tahun. BMI 30 kg/m². Pasien datang karena diminta istrinya untuk periksa setelah tetangganya terkena serangan jantung.</p>
+          </div>
+          <div class="media-box">
+            <svg viewBox="0 0 400 120" style="max-width:100%">
+              <rect width="400" height="120" fill="#fef0ef" rx="12"/>
+              <text x="200" y="22" text-anchor="middle" fill="#c0392b" font-weight="700" font-size="13">PROFIL LIPID & RISIKO ATEROSKLEROSIS</text>
+              <text x="200" y="42" text-anchor="middle" fill="#555" font-size="10">LDL ↑ → Oksidasi → Makrofag → Foam Cell → Plak Ateroma</text>
+              <rect x="30" y="52" width="100" height="50" fill="#e74c3c" rx="4" opacity="0.8"/>
+              <text x="80" y="65" text-anchor="middle" fill="white" font-weight="600" font-size="9">LDL ↑</text>
+              <text x="80" y="78" text-anchor="middle" fill="white" font-size="8">&gt;130 mg/dL</text>
+              <text x="80" y="90" text-anchor="middle" fill="white" font-size="8">Aterogenik</text>
+              <rect x="150" y="52" width="100" height="50" fill="#27ae60" rx="4" opacity="0.8"/>
+              <text x="200" y="65" text-anchor="middle" fill="white" font-weight="600" font-size="9">HDL ↓</text>
+              <text x="200" y="78" text-anchor="middle" fill="white" font-size="8">&lt;40 mg/dL</text>
+              <text x="200" y="90" text-anchor="middle" fill="white" font-size="8">Proteksi ↓</text>
+              <rect x="270" y="52" width="100" height="50" fill="#e67e22" rx="4" opacity="0.8"/>
+              <text x="320" y="65" text-anchor="middle" fill="white" font-weight="600" font-size="9">TG ↑</text>
+              <text x="320" y="78" text-anchor="middle" fill="white" font-size="8">&gt;150 mg/dL</text>
+              <text x="320" y="90" text-anchor="middle" fill="white" font-size="8">Residu risiko</text>
+            </svg>
+          </div>
+        `
+      },
+      { title: "Gejala", step: "IPM-2",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🔍</span> Gejala Klinis</h3>
+            <ul>
+              <li>Umumnya <strong>asimtomatik</strong> — dislipidemia adalah "silent killer" metabolik</li>
+              <li>Xanthelasma: Deposit kolesterol pada kelopak mata (kuning, datar)</li>
+              <li>Xanthoma tendon: Benjolan pada tendon Achilles atau ekstensor jari</li>
+              <li>Arcus lipoides / Arcus senilis: Cincin putih pada kornea (usia &lt;45 th → patologis)</li>
+              <li>Xanthoma eruptif: Papul kuning di bokong dan ekstensor (pada hipertrigliseridemia berat)</li>
+              <li>Nyeri perut (pankreatitis) pada hipertrigliseridemia sangat berat (&gt;1000 mg/dL)</li>
+              <li>Gejala penyakit kardiovaskular (nyeri dada, sesak, stroke) — manifestasi lanjut</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Karakteristik TTV", step: "IPM-3",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🩺</span> Vital Signs</h3>
+            <div class="media-box">
+              <table style="width:100%;border-collapse:collapse;font-size:0.88rem">
+                <tr style="background:#c0392b;color:white"><th>Parameter</th><th>Nilai</th><th>Keterangan</th></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">TD</td><td style="padding:8px">135/85 mmHg</td><td style="padding:8px">Prehipertensi</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Nadi</td><td style="padding:8px">82 x/menit</td><td style="padding:8px">Normal</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Pernapasan</td><td style="padding:8px">18 x/menit</td><td style="padding:8px">Normal</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Suhu</td><td style="padding:8px">36.4°C</td><td style="padding:8px">Afebris</td></tr>
+                <tr><td style="padding:8px">BMI</td><td style="padding:8px;font-weight:700;color:#e74c3c">30.0 kg/m²</td><td style="padding:8px">Obesitas derajat 1</td></tr>
+              </table>
+            </div>
+          </div>
+          <div class="section">
+            <h3><span class="emoji">📐</span> Lingkar Perut</h3>
+            <p>102 cm (obesitas sentral — risiko metabolik tinggi)</p>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Head to Toe", step: "IPM-4",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">👤</span> Pemeriksaan Fisik Head-to-Toe</h3>
+            <ul>
+              <li><strong>Mata:</strong> Arcus lipoides bilateral (+), xanthelasma palpebra (+)</li>
+              <li><strong>Kulit:</strong> Xanthelasma di kelopak mata medial, akantosis nigrikans (-) — skrining DM</li>
+              <li><strong>Leher:</strong> Tiroid tidak membesar (eksklusi hipotiroid sebagai penyebab dislipidemia sekunder)</li>
+              <li><strong>Thoraks:</strong> Normal</li>
+              <li><strong>Jantung:</strong> Normal — tidak ada tanda penyakit jantung lanjut</li>
+              <li><strong>Abdomen:</strong> Obesitas sentral, hepar tidak teraba</li>
+              <li><strong>Ekstremitas:</strong> Tendon Achilles normal (xanthoma -), akral hangat</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Fisik Lokalis", step: "IPM-5",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🔬</span> Pemeriksaan Khusus Dislipidemia</h3>
+            <ul>
+              <li><strong>Funduskopi:</strong> Lipemia retinalis (retina warna salmon) pada TG &gt;2000 mg/dL</li>
+              <li><strong>Palpasi tendon:</strong> Periksa tendon Achilles, ekstensor jari, dan tendon patela untuk xanthoma</li>
+              <li><strong>Skrining kardiovaskular:</strong> ABI, palpasi arteri perifer — untuk deteksi PAD subklinis</li>
+              <li><strong>Risiko SCORE/ASCVD:</strong> Hitung risiko kardiovaskular 10 tahun</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Penunjang", step: "IPM-6",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🔬</span> Hasil Pemeriksaan Penunjang</h3>
+            <div class="media-box">
+              <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+                <tr style="background:#2c3e50;color:white"><th>Pemeriksaan</th><th style="text-align:center">Hasil</th><th>Target</th></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">Kolesterol Total</td><td style="padding:6px;font-weight:700;color:#c0392b;text-align:center">280 mg/dL</td><td style="padding:6px">&lt;200</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">LDL</td><td style="padding:6px;font-weight:700;color:#c0392b;text-align:center">195 mg/dL</td><td style="padding:6px">&lt;130 (&lt;100 risiko tinggi)</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">HDL</td><td style="padding:6px;font-weight:700;color:#c0392b;text-align:center">33 mg/dL</td><td style="padding:6px">&gt;40 (pria)</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">Trigliserida</td><td style="padding:6px;font-weight:700;color:#e67e22;text-align:center">220 mg/dL</td><td style="padding:6px">&lt;150</td></tr>
+                <tr><td style="padding:6px">GDP</td><td style="padding:6px;text-align:center">105 mg/dL</td><td style="padding:6px">&lt;100 (pro-DM)</td></tr>
+              </table>
+            </div>
+            <h3 style="margin-top:12px">Perhitungan Risiko</h3>
+            <ul>
+              <li><strong>Framingham Risk Score:</strong> 20% risiko 10 tahun (high risk — karena LDL &gt;190 + smoking + DM prediabetes + obesitas)</li>
+              <li><strong>Non-HDL:</strong> Total - HDL = 247 mg/dL (target &lt;160)</li>
+              <li><strong>Rasio LDL/HDL:</strong> 5.9 (target &lt;3.5)</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Diagnosis Banding", step: "IPM-7",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🤔</span> Diagnosis Banding</h3>
+            <div class="dd-list" id="ddList4"></div>
+          </div>
+        `
+      },
+      { title: "Diagnosis Kerja", step: "IPM-8",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">✅</span> Diagnosis Kerja</h3>
+            <div class="media-box" style="background:#f0faf0;border-color:#27ae60">
+              <h4 style="color:#27ae60;font-size:1.1rem">Dislipidemia Campuran (Hiperkolesterolemia + Hipertrigliseridemia)</h4>
+              <p style="margin-top:8px;font-size:0.9rem">High-risk (LDL ≥190, smoking, obesitas, prediabetes)</p>
+              <p style="margin-top:4px;font-size:0.8rem;color:var(--text-light)">
+                ICD-10: E78.2 • Mixed hyperlipidemia • LDL 195 • HDL 33 • TG 220
+              </p>
+            </div>
+          </div>
+        `
+      },
+      { title: "Tatalaksana Umum", step: "IPM-9",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">💊</span> Tatalaksana Farmakologis</h3>
+            <ul>
+              <li><strong>Statin intensitas tinggi:</strong> Atorvastatin 40-80 mg/hari ATAU Rosuvastatin 20-40 mg/hari (target LDL &lt;100 mg/dL)</li>
+              <li><strong>Jika TG masih tinggi (&gt;500):</strong> Tambah Fibrat (Fenofibrat 200 mg/hari) atau Omega-3 2-4g/hari</li>
+              <li><strong>Jika LDL belum target:</strong> Tambah Ezetimibe 10 mg/hari</li>
+            </ul>
+          </div>
+          <div class="section">
+            <h3><span class="emoji">🏋️</span> Tatalaksana Non-Farmakologis</h3>
+            <ul>
+              <li><strong>Diet Terapi Lipid (TLP):</strong> Rendah lemak jenuh (&lt;7% kalori), rendah kolesterol (&lt;200 mg/hari), tinggi serat (25-30 g/hari)</li>
+              <li>Ikan laut 2x/minggu (omega-3) — untuk ↓ trigliserida</li>
+              <li>Batasi gula sederhana dan alkohol (untuk ↓ TG)</li>
+              <li>Olahraga aerobik 30-45 menit/hari, 5-7x/minggu</li>
+              <li>Turunkan berat badan 5-10% — efek signifikan pada profil lipid</li>
+              <li>Berhenti merokok — ↑ HDL secara bermakna</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Contoh Resep", step: "IPM-10",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">📝</span> Contoh Resep</h3>
+            <div class="prescription-box">
+              <div class="rx-header"><span class="rx">R / Resep</span><span>Puskesmas Sehat</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Atorvastatin 40 mg tab No. XXX<br>S 1 dd 1 tab (malam hari)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Ezetimibe 10 mg tab No. XXX<br>S 1 dd 1 tab (pagi)</span></div>
+              <div class="rx-footer"><p>Pro: Tn. E (45 th) — Paraf: — Tgl:</p></div>
+            </div>
+            <p style="font-size:0.8rem;color:var(--text-light);margin-top:6px">Catatan: Cek fungsi hati (AST/ALT) sebelum dan 4-8 minggu setelah mulai statin. Jika nyeri otot → curi miopati.</p>
+          </div>
+        `
+      },
+      { title: "Tatalaksana Khusus", step: "IPM-11",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🏨</span> Tatalaksana Khusus & Rujukan</h3>
+            <ul>
+              <li><strong>Rujuk spesialis penyakit dalam:</strong> Jika LDL &gt;190 mg/dL sejak awal (familial hypercholesterolemia) atau tidak mencapai target dengan maksimal terapi</li>
+              <li><strong>PCSK9 Inhibitor:</strong> Untuk FH atau intoleransi statin (rujukan spesialis)</li>
+              <li><strong>Monitoring:</strong> Profil lipid setiap 4-12 minggu pertama, jika stabil 6-12 bulan</li>
+              <li><strong>Aferesis LDL:</strong> Untuk FH homozigot</li>
+              <li><strong>Skrining keluarga:</strong> Pada kecurigaan dislipidemia familial</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Edukasi", step: "IPM-12",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">📢</span> Edukasi Pasien</h3>
+            <ul>
+              <li><strong>Dislipidemia adalah kondisi kronis — perlu obat jangka panjang</strong></li>
+              <li>Statin aman dan efektif — efek samping jarang, jangan takut myalgia ringan (konsultasi jika nyeri otot berat)</li>
+              <li>Diet dan olahraga adalah fondasi — obat hanya membantu</li>
+              <li>Target LDL &lt;100 mg/dL (risiko tinggi) — butuh kepatuhan</li>
+              <li>Skrining keluarga inti (orangtua, saudara) untuk deteksi dini</li>
+              <li>Kontrol profil lipid, gula darah, fungsi hati setiap 3-6 bulan</li>
+              <li>Berhenti merokok dan turunkan berat badan — efek sinergis dengan statin</li>
+            </ul>
+          </div>
+        `
+      }
+    ]
+  },
+  // 6. FIBRILASI ATRIUM
+  {
+    id: 5, name: "Fibrilasi Atrium",
+    pages: [
+      { title: "Skenario Kasus", step: "IPM-1",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🏥</span> Skenario</h3>
+            <p>Seorang laki-laki, 68 tahun, datang ke Puskesmas dengan keluhan jantung berdebar-debar (palpitasi) yang timbul hilang sejak 1 bulan terakhir. Pasien juga mengeluh mudah lelah, sesak saat aktivitas, dan kadang-kadang rasa melayang (lightheadedness). Riwayat hipertensi sejak 15 tahun (TD terkontrol dengan Amlodipin), dan memiliki riwayat stroke ringan 2 tahun lalu (residual minimal). Pasien minum kopi 4-5 cangkir/hari dan kadang minum alkohol saat ada acara keluarga.</p>
+          </div>
+          <div class="media-box">
+            <svg viewBox="0 0 400 125" style="max-width:100%">
+              <rect width="400" height="125" fill="#fef0ef" rx="12"/>
+              <text x="200" y="22" text-anchor="middle" fill="#c0392b" font-weight="700" font-size="13">FIBRILASI ATRIUM — MEKANISME DAN RISIKO</text>
+              <rect x="50" y="35" width="120" height="65" fill="#fff" stroke="#c0392b" rx="6"/>
+              <text x="110" y="52" text-anchor="middle" fill="#c0392b" font-weight="600" font-size="10">Atrium fibrilasi</text>
+              <text x="110" y="66" text-anchor="middle" fill="#555" font-size="9">400-600 x/menit</text>
+              <text x="110" y="80" text-anchor="middle" fill="#555" font-size="9">↓ kontraksi atrium</textarea>
+              <text x="110" y="92" text-anchor="middle" fill="#555" font-size="9">Stasis darah → Trombus</text>
+              <line x1="170" y1="67" x2="230" y2="67" stroke="#999" stroke-width="2" stroke-dasharray="5"/>
+              <rect x="230" y="35" width="120" height="65" fill="#fff" stroke="#2c3e50" rx="6"/>
+              <text x="290" y="52" text-anchor="middle" fill="#2c3e50" font-weight="600" font-size="10">Ventrikel irreguler</text>
+              <text x="290" y="66" text-anchor="middle" fill="#555" font-size="9">↓ Curah Jantung</text>
+              <text x="290" y="80" text-anchor="middle" fill="#555" font-size="9">↑ Risiko Emboli</text>
+              <text x="290" y="92" text-anchor="middle" fill="#c0392b" font-weight="600" font-size="10">Stroke 5x lipat!</text>
+              <text x="200" y="120" text-anchor="middle" fill="#999" font-size="9">Gambar 6.1 — Patofisiologi fibrilasi atrium</text>
+            </svg>
+          </div>
+        `
+      },
+      { title: "Gejala", step: "IPM-2",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🔍</span> Gejala Klinis</h3>
+            <ul>
+              <li><strong>Palpitasi:</strong> Jantung terasa berdebar tidak teratur, kadang cepat (paroksismal)</li>
+              <li>Mudah lelah/fatigue — akibat curah jantung ↓</li>
+              <li>Sesak napas saat aktivitas</li>
+              <li>Lightheadedness / rasa mau pingsan (presyncope)</li>
+              <li>Nyeri dada (kadang) — jika disertai PJK</li>
+              <li>Poliuri (kadang) — akibat pelepasan ANP dari atrium yang teregang</li>
+              <li>Gejala emboli — stroke, TIA, emboli perifer</li>
+              <li>Bisa juga asimtomatik (ditemukan insidental saat pemeriksaan)</li>
+            </ul>
+            <p style="font-size:0.85rem;color:var(--text-light);margin-top:8px"><strong>Klasifikasi:</strong> Paroksismal (&lt;7 hari) • Persisten (&gt;7 hari) • Persisten lama (&gt;1 tahun) • Permanen (diterima)</p>
+          </div>
+        `
+      },
+      { title: "Karakteristik TTV", step: "IPM-3",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🩺</span> Vital Signs</h3>
+            <div class="media-box">
+              <table style="width:100%;border-collapse:collapse;font-size:0.88rem">
+                <tr style="background:#c0392b;color:white"><th>Parameter</th><th>Nilai</th><th>Keterangan</th></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">TD</td><td style="padding:8px">130/80 mmHg</td><td style="padding:8px">Terkontrol</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Nadi</td><td style="padding:8px;font-weight:700;color:#c0392b">110 x/menit</td><td style="padding:8px">Irreguler — pulse deficit (+)</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Pernapasan</td><td style="padding:8px">22 x/menit</td><td style="padding:8px">Normal</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:8px">Suhu</td><td style="padding:8px">36.5°C</td><td style="padding:8px">Afebris</td></tr>
+                <tr><td style="padding:8px">SpO₂</td><td style="padding:8px">96%</td><td style="padding:8px">Normal</td></tr>
+              </table>
+            </div>
+            <p style="font-size:0.85rem;margin-top:8px"><strong>Pulse deficit:</strong> Nadi perifer 88, nadi apeks 110 → tanda FA (kontraksi ventrikel inefektif)</p>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Head to Toe", step: "IPM-4",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">👤</span> Pemeriksaan Head-to-Toe</h3>
+            <ul>
+              <li><strong>Penampilan:</strong> Tampak gelisah, tidak ada distress berat</li>
+              <li><strong>Kepala/Leher:</strong> JVP normal, denyut karotis irreguler</li>
+              <li><strong>Thoraks:</strong> Vesikuler, ronki (-), wheezing (-)</li>
+              <li><strong>Jantung:</strong> Irama absolut ireguler, S1 bervariasi intensitasnya, S2 normal, murmur (-)</li>
+              <li><strong>Abdomen:</strong> Supel, nyeri tekan (-)</li>
+              <li><strong>Ekstremitas:</strong> Akral hangat, edema (-), pulsasi perifer ireguler</li>
+              <li><strong>Neurologis:</strong> GCS 15, parese (-), sisa stroke ringan: parese n. VII minor (+)</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Fisik Lokalis", step: "IPM-5",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🫀</span> Pemeriksaan Kardiovaskular Khusus</h3>
+            <ul>
+              <li><strong>Auskultasi:</strong> Irama absolut ireguler (irregularly irregular) — patognomonis FA. S1 bervariasi (perubahan kontraktilitas ventrikel)</li>
+              <li><strong>Pulse deficit:</strong> Selisih nadi apex (stetoskop) vs nadi radialis — &gt;10 menunjukkan FA dengan respons ventrikel cepat</li>
+              <li><strong>Palpasi:</strong> Iktus kordi normal, thrill (-)</li>
+              <li><strong>CHADS₂-VASc:</strong> Hitung risiko stroke — 4 poin (hipertensi 1, usia &gt;65 th 1, stroke 2) → risiko tinggi</li>
+              <li><strong>HAS-BLED:</strong> Hitung risiko perdarahan jika akan antikoagulasi</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Pemeriksaan Penunjang", step: "IPM-6",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🔬</span> Hasil Pemeriksaan Penunjang</h3>
+            <div class="media-box">
+              <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+                <tr style="background:#2c3e50;color:white"><th>Pemeriksaan</th><th>Hasil</th><th>Normal</th></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">Hb</td><td style="padding:6px">13.8 g/dL</td><td style="padding:6px">13-17</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">Kreatinin</td><td style="padding:6px">1.1 mg/dL</td><td style="padding:6px">0.7-1.3</td></tr>
+                <tr style="border-bottom:1px solid #eee"><td style="padding:6px">TSH</td><td style="padding:6px">2.5 μIU/mL</td><td style="padding:6px">0.5-5.0</td></tr>
+                <tr><td style="padding:6px">GDP</td><td style="padding:6px">95 mg/dL</td><td style="padding:6px">&lt;100</td></tr>
+              </table>
+            </div>
+            <h3 style="margin-top:12px">Pemeriksaan Khusus</h3>
+            <ul>
+              <li><strong>EKG:</strong> Irama irreguler, gelombang P hilang (diganti gelombang f), QRS narrow, interval R-R tidak sama</li>
+              <li><strong>Foto Thoraks:</strong> Kardiomegali ringan, tidak ada kongesti</li>
+              <li><strong>Ekokardiografi:</strong> LAD 4.6 cm (dilatasi atrium kiri), EF 50%, trombus LA (-), penyakit katup mitral (-)</li>
+              <li><strong>Holter 24 jam:</strong> Total durasi FA 12 jam, HR rata-rata 105 x/menit, tidak ada pause &gt;3 detik</li>
+            </ul>
+          </div>
+          <div class="media-box">
+            <div class="ecg-container"><canvas id="ecgCanvas5"></canvas></div>
+            <div class="caption">Gambar 6.2 — EKG Fibrilasi Atrium: irama irreguler, P hilang, fibrilasi f</div>
+          </div>
+        `
+      },
+      { title: "Diagnosis Banding", step: "IPM-7",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🤔</span> Diagnosis Banding</h3>
+            <div class="dd-list" id="ddList5"></div>
+          </div>
+        `
+      },
+      { title: "Diagnosis Kerja", step: "IPM-8",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">✅</span> Diagnosis Kerja</h3>
+            <div class="media-box" style="background:#f0faf0;border-color:#27ae60">
+              <h4 style="color:#27ae60;font-size:1.1rem">Fibrilasi Atrium Persisten (FA)</h4>
+              <p style="margin-top:8px;font-size:0.9rem">CHADS₂-VASc 4 (risiko stroke tinggi) • HAS-BLED 2 (risiko perdarahan sedang)</p>
+              <p style="margin-top:4px;font-size:0.8rem;color:var(--text-light)">
+                ICD-10: I48.1 • HR 110 irreguler • LAD 4.6 cm
+              </p>
+            </div>
+          </div>
+        `
+      },
+      { title: "Tatalaksana Umum", step: "IPM-9",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">💊</span> Tatalaksana Farmakologis — ABCD Approach</h3>
+            <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px">A: Anti-Koagulasi • B: Better Rate/Rhythm Control • C: Comorbidity • D: Diet/Lifestyle</p>
+            <ul>
+              <li><strong>Antikoagulasi (Stroke Prevention):</strong> Rivaroxaban 20 mg/hari ATAU Apixaban 5 mg 2x/hari (NOAC pilihan) — CHADS₂-VASc ≥2 → WAJIB antikoagulasi</li>
+              <li><strong>Rate Control:</strong> β-blocker (Bisoprolol 2.5-5 mg/hari) ATAU CCB non-DHP (Diltiazem 30-60 mg 3x/hari) — target HR &lt;80 saat istirahat, &lt;110 saat aktivitas ringan</li>
+              <li><strong>Jika gagal rate control → Rhythm Control:</strong> Amiodaron 200 mg/hari (konsultasi spesialis) atau kardioversi elektrik</li>
+            </ul>
+          </div>
+          <div class="section">
+            <h3><span class="emoji">🏋️</span> Tatalaksana Non-Farmakologis</h3>
+            <ul>
+              <li>Batasi kafein (kopi, teh) dan alkohol — pemicu FA</li>
+              <li>Kontrol hipertensi dan DM</li>
+              <li>Manajemen berat badan (obesitas ↑ risiko FA)</li>
+              <li>Sleep apnea screening — STOP BANG questionnaire</li>
+              <li>Olahraga teratur</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Contoh Resep", step: "IPM-10",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">📝</span> Contoh Resep</h3>
+            <div class="prescription-box">
+              <div class="rx-header"><span class="rx">R / Resep</span><span>Puskesmas Sehat</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Rivaroxaban 20 mg tab No. XXX<br>S 1 dd 1 tab (bersama makan malam)</span></div>
+              <div class="rx-item"><span class="r">R/</span><span>Bisoprolol 5 mg tab No. XXX<br>S 1 dd ½-1 tab (pagi) — target HR 60-80</span></div>
+              <div class="rx-footer"><p>Pro: Tn. F (68 th) — Cek fungsi ginjal sebelum rivaroxaban — Paraf:</p></div>
+            </div>
+            <p style="font-size:0.8rem;color:var(--text-light);margin-top:6px">Catatan: NOAC lebih aman dari warfarin (tanpa monitoring rutin INR). Namun perhatikan fungsi ginjal.</p>
+          </div>
+        `
+      },
+      { title: "Tatalaksana Khusus", step: "IPM-11",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">🏨</span> Tatalaksana Khusus & Rujukan</h3>
+            <ul>
+              <li><strong>Rujukan ke Spesialis Jantung:</strong> Untuk kardioversi (listrik/farmakologis) atau ablasi FA</li>
+              <li><strong>Kardioversi:</strong> Jika FA persisten & gejala mengganggu meski rate terkontrol</li>
+              <li><strong>Ablasi kateter:</strong> Isolasi vena pulmonalis — kuratif terutama FA paroksismal</li>
+              <li><strong>Left atrial appendage closure (LAAC):</strong> Jika kontraindikasi antikoagulasi jangka panjang</li>
+              <li><strong>Indikasi rawat:</strong> HR &gt;150 irreguler, hemodinamik tidak stabil, emboli akut, stroke</li>
+            </ul>
+          </div>
+        `
+      },
+      { title: "Edukasi", step: "IPM-12",
+        content: `
+          <div class="section">
+            <h3><span class="emoji">📢</span> Edukasi Pasien</h3>
+            <ul>
+              <li><strong>Antikoagulasi adalah kunci:</strong> Obat ini mencegah stroke — jangan dihentikan tanpa konsultasi</li>
+              <li>Kenali tanda perdarahan: Gusi berdarah, mimisan, memar spontan, BAB hitam</li>
+              <li>Hindari alkohol dan kafein berlebih — keduanya mencetuskan FA</li>
+              <li>Monitor nadi sendiri: Normal 60-100, teratur. Jika tidak teratur → catat durasi</li>
+              <li>Kenali gejala TIA/stroke: Wajah asimetris, lengan lemah, bicara pelo — segera ke IGD</li>
+              <li>Kontrol rutin: TD, nadi, EKG, fungsi ginjal setiap 3-6 bulan</li>
+              <li>Gunakan alat bantu pengingat minum obat (pill organizer)</li>
+              <li>Informasikan ke dokter gigi sebelum prosedur (hentikan rivaroxaban 24 jam sebelumnya)</li>
+            </ul>
+          </div>
+        `
+      }
+    ]
+  },
+  // 7. PENYAKIT JANTUNG REMATIK
+  {
+    id: 6, name: "Penyakit Jantung Rematik",
+    pages: [
+      { title: "Skenario Kasus", step: "IPM-1", content: `
+        <div class="section"><h3><span class="emoji">🏥</span> Skenario</h3>
+        <p>Seorang perempuan, 22 tahun, mahasiswi, datang ke Puskesmas dengan keluhan sesak napas saat aktivitas dan mudah lelah sejak 3 bulan terakhir. Pasien juga mengeluh jantung sering berdebar dan kadang nyeri dada ringan. Pada usia 10 tahun, pasien sering mengalami demam dan nyeri sendi bergantian (lutut, siku, pergelangan) yang disebut "rematik" saat itu. Riwayat tonsilitis berulang pada masa kanak-kanak. Pasien tidak menyadari adanya penyakit katup jantung sebelumnya.</p></div>
+        <div class="media-box"><svg viewBox="0 0 400 120"><rect width="400" height="120" fill="#fef0ef" rx="12"/><text x="200" y="22" text-anchor="middle" fill="#c0392b" font-weight="700" font-size="13">PATOFISIOLOGI PENYAKIT JANTUNG REMATIK</text><text x="200" y="40" text-anchor="middle" fill="#555" font-size="9">Infeksi GAS → Respon autoimun (molecular mimicry) → Inflamasi katup jantung</text><rect x="30" y="50" width="120" height="55" fill="#fff" stroke="#c0392b" rx="6"/><text x="90" y="66" text-anchor="middle" fill="#c0392b" font-weight="600" font-size="9">Demam Rematik Akut</text><text x="90" y="80" text-anchor="middle" fill="#555" font-size="8">Pankarditis, Poliartritis</text><text x="90" y="93" text-anchor="middle" fill="#555" font-size="8">Kriteria JONES</text><line x1="150" y1="77" x2="250" y2="77" stroke="#999" stroke-width="2" stroke-dasharray="4"/><rect x="250" y="50" width="120" height="55" fill="#fff" stroke="#2c3e50" rx="6"/><text x="310" y="66" text-anchor="middle" fill="#2c3e50" font-weight="600" font-size="9">PJR Kronik</text><text x="310" y="80" text-anchor="middle" fill="#555" font-size="8">Stenosis/Regurgitasi</text><text x="310" y="93" text-anchor="middle" fill="#555" font-size="8">Progresif → Gagal Jantung</text><text x="200" y="115" text-anchor="middle" fill="#999" font-size="9">Gambar 7.1 — Perjalanan penyakit dari DR akut ke PJR kronik</text></svg></div>`
+      },
+      { title: "Gejala", step: "IPM-2", content: `
+        <div class="section"><h3><span class="emoji">🔍</span> Gejala Klinis</h3>
+        <ul><li><strong>Sesak napas progresif:</strong> Aktivitas, ortopnea, PND pada stenosis mitral berat</li><li><strong>Mudah lelah:</strong> Akibat curah jantung yang terbatas (stenosis mitral)</li><li><strong>Palpitasi:</strong> Sering karena FA sekunder</li><li><strong>Nyeri dada:</strong> Tekanan retrosternal (angina-like)</li><li><strong>Hemoptisis:</strong> Batuk darah (pada stenosis mitral dengan hipertensi pulmonal)</li><li><strong>Riwayat demam rematik:</strong> Migratory polyarthritis, demam, chorea (Sydenham), nodul subkutan, eritema marginatum</li></ul></div>`
+      },
+      { title: "Karakteristik TTV", step: "IPM-3", content: `
+        <div class="section"><h3><span class="emoji">🩺</span> Vital Signs & Temuan Klinis</h3>
+        <div class="media-box"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><tr style="background:#c0392b;color:white"><th>Parameter</th><th>Nilai</th><th>Keterangan</th></tr><tr style="border-bottom:1px solid #eee"><td style="padding:8px">TD</td><td style="padding:8px">110/70 mmHg</td><td style="padding:8px">Normal</td></tr><tr style="border-bottom:1px solid #eee"><td style="padding:8px">Nadi</td><td style="padding:8px;font-weight:700;color:#c0392b">88 x/menit</td><td style="padding:8px">Irreguler (FA)</td></tr><tr style="border-bottom:1px solid #eee"><td style="padding:8px">Pernapasan</td><td style="padding:8px">24 x/menit</td><td style="padding:8px">Takipnea</td></tr><tr><td style="padding:8px">Suhu</td><td style="padding:8px">36.6°C</td><td style="padding:8px">Afebris</td></tr></table></div>
+        <p style="font-size:0.85rem;margin-top:8px">Fasies mitralis: pipi merah-muda (malar flush) akibat stenosis mitral + hipertensi pulmonal</p></div>`
+      },
+      { title: "Pemeriksaan Fisik", step: "IPM-4&5", content: `
+        <div class="section"><h3><span class="emoji">👤</span> Pemeriksaan Fisik Head-to-Toe & Lokalis</h3>
+        <ul><li><strong>Inspeksi:</strong> Fasies mitralis (malar flush), iktus kordi hiperdinamis</li><li><strong>Palpasi:</strong> Thrill di apeks (diastolik) pada stenosis mitral, RV heave (hipertrofi RV)</li><li><strong>Auskultasi:</strong> S1 mengeras (stenosis mitral), S2 split lebar, opening snap (+), murmur diastolik rumbling di apeks, murmur pansistolik di apeks (regurgitasi mitral)</li><li><strong>Tanda gagal jantung kanan:</strong> JVP ↑, hepatomegali, edema tungkai (pada stadium lanjut)</li></ul></div>`
+      },
+      { title: "Pemeriksaan Penunjang", step: "IPM-6", content: `
+        <div class="section"><h3><span class="emoji">🔬</span> Hasil Pemeriksaan Penunjang</h3>
+        <div class="media-box"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><tr style="background:#2c3e50;color:white"><th>Pemeriksaan</th><th>Hasil</th></tr><tr style="border-bottom:1px solid #eee"><td style="padding:6px">LED/CRP</td><td style="padding:6px">Normal (proses inflamasi sudah reda)</td></tr><tr style="border-bottom:1px solid #eee"><td style="padding:6px">ASTO</td><td style="padding:6px;font-weight:700;color:#e67e22">400 IU/mL</td></tr><tr><td style="padding:6px">Kultur darah</td><td style="padding:6px">Negatif</td></tr></table></div>
+        <ul><li><strong>EKG:</strong> FA, LVH, P mitrale (P bifid di lead II)</li><li><strong>Foto Thoraks:</strong> Kardiomegali, tanda stenosis mitral (double contour, prominent pulmonary artery)</li><li><strong>Ekokardiografi:</strong> Stenosis mitral area &lt;1.5 cm² (berat), regurgitasi mitral, LAD 5.0 cm, PAP 55 mmHg</li></ul></div>
+        <div class="media-box"><div class="ecg-container"><canvas id="ecgCanvas6"></canvas></div><div class="caption">Gambar 7.2 — EKG: P mitrale, FA pattern</div></div>`
+      },
+      { title: "Diagnosis & Tatalaksana", step: "IPM-7-12", content: `
+        <div class="section"><h3><span class="emoji">🤔✅</span> Diagnosis Banding & Diagnosis Kerja</h3>
+        <div class="dd-list" id="ddList6"></div>
+        <div class="media-box" style="background:#f0faf0;border-color:#27ae60;margin-top:12px"><h4 style="color:#27ae60;font-size:1.1rem">Penyakit Jantung Rematik: Stenosis Mitral Berat + Regurgitasi Mitral</h4><p style="margin-top:4px;font-size:0.8rem;color:var(--text-light)">ICD-10: I05.0 + I05.1 • Area mitral &lt;1.5 cm² • FA sekunder • Riwayat DR (+) • ASTO ↑</p></div></div>
+        <div class="section"><h3><span class="emoji">💊</span> Tatalaksana Umum</h3>
+        <ul><li><strong>Profilaksis sekunder:</strong> Benzatin Penisilin G 1.2 juta IU IM/3 minggu (sampai usia 40 tahun atau minimal 10 tahun)</li><li><strong>Diuretik:</strong> Furosemid 40 mg/hari — untuk kongesti</li><li><strong>Rate control:</strong> Bisoprolol 2.5-5 mg/hari (untuk FA)</li><li><strong>Antikoagulasi:</strong> Rivaroxaban/Warfarin (jika FA + CHADS₂-VASc ≥2)</li><li><strong>Pencegahan endokarditis:</strong> Antibiotik profilaksis sebelum prosedur gigi/invasif</li></ul></div>
+        <div class="section"><h3><span class="emoji">📝</span> Contoh Resep</h3>
+        <div class="prescription-box"><div class="rx-header"><span class="rx">R / Resep</span><span>Puskesmas</span></div><div class="rx-item"><span class="r">R/</span><span>Benzatin Penisilin G 1,2 jt IU inj No. 1<br>S 1 inj IM setiap 3 minggu</span></div><div class="rx-item"><span class="r">R/</span><span>Furosemid 40 mg tab No. XXX<br>S 2 dd 1 tab</span></div><div class="rx-footer"><p>Pro: Ny. G (22 th) — Rujuk ke spesialis jantung untuk evaluasi operasi katup</p></div></div></div>
+        <div class="section"><h3><span class="emoji">🏨</span> Tatalaksana Khusus & Edukasi</h3>
+        <ul><li><strong>Rujuk ke Spesialis Jantung:</strong> Untuk koreksi katup (PTMV atau operasi mitral valve replacement)</li><li><strong>Indikasi operasi:</strong> Stenosis mitral berat (area &lt;1.5 cm²) dengan gejala</li><li><strong>Kehamilan:</strong> Risiko tinggi — konseling pra-konsepsi</li><li><strong>Edukasi:</strong> Pentingnya profilaksis penisilin rutin, kontrol rutin, kenali tanda perburukan (sesak memburuk, hemoptisis)</li></ul></div>`
+      }
+    ]
+  },
+  // 8. SYOK KARDIOGENIK
+  {
+    id: 7, name: "Syok Kardiogenik",
+    pages: [
+      { title: "Skenario Kasus", step: "IPM-1", content: `
+        <div class="section"><h3><span class="emoji">🏥🚨</span> Skenario</h3>
+        <p>Seorang laki-laki, 60 tahun, dibawa ke IGD Puskesmas dalam keadaan lemas dan penurunan kesadaran (GCS 12). Sejak 4 jam yang lalu, pasien mengeluh nyeri dada hebat seperti diremas yang tidak mereda dengan istirahat. Keluarga mengatakan pasien tampak pucat, keringat dingin, dan sulit diajak bicara. Riwayat hipertensi, DM, dan merokok berat. Sebelumnya pasien sedang mengecat rumah dan tiba-tiba jatuh.</p></div>
+        <div class="media-box" style="background:#fce4e4;border-color:#c0392b"><p style="font-weight:700;color:#c0392b">🚨 GAWAT DARURAT — Syok Kardiogenik adalah kondisi mengancam jiwa!</p><p style="font-size:0.85rem;margin-top:4px">Ditandai: TD &lt;90/60 mmHg + tanda hipoperfusi jaringan (dingin, oliguri, penurunan kesadaran) meskipun resusitasi cairan adekuat</p></div>`
+      },
+      { title: "Gejala", step: "IPM-2", content: `
+        <div class="section"><h3><span class="emoji">🔍</span> Gejala Klinis</h3>
+        <ul><li><strong>Penurunan kesadaran:</strong> Somnolen sampai koma (hipoperfusi serebral)</li><li><strong>Hipotensi berat:</strong> TD sistol &lt;90 mmHg (atau ↓40 mmHg dari baseline)</li><li><strong>Kulit:</strong> Pucat, dingin, lembab (keringat dingin), sianosis perifer</li><li><strong>Oliguria:</strong> Produksi urin &lt;30 mL/jam (gagal ginjal prerenal)</li><li><strong>Takikardi:</strong> Nadi cepat dan lemah (thready pulse)</li><li><strong>Sesak napas berat:</strong> Akibat edema paru akut</li><li><strong>Nyeri dada:</strong> Biasanya karena IMA penyebab syok</li><li><strong>Gelisah, bingung, atau tidak sadar</strong></li></ul></div>`
+      },
+      { title: "TTV & Pemeriksaan", step: "IPM-3-5", content: `
+        <div class="section"><h3><span class="emoji">🩺</span> Vital Signs</h3>
+        <div class="media-box"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><tr style="background:#c0392b;color:white"><th>Parameter</th><th>Nilai</th><th>Keterangan</th></tr><tr style="border-bottom:1px solid #eee"><td>TD</td><td style="font-weight:700;color:#c0392b;padding:8px">80/50 mmHg</td><td>Hipotensi berat — syok</td></tr><tr style="border-bottom:1px solid #eee"><td>Nadi</td><td style="font-weight:700;color:#c0392b;padding:8px">120 x/mnt</td><td>Takikardi, lemah</td></tr><tr style="border-bottom:1px solid #eee"><td>Pernapasan</td><td style="padding:8px">30 x/mnt</td><td>Takipnea — edema paru</td></tr><tr style="border-bottom:1px solid #eee"><td>Suhu</td><td style="padding:8px">36.0°C</td><td>Hipotermia ringan</td></tr><tr><td>SpO₂</td><td style="font-weight:700;color:#c0392b;padding:8px">85%</td><td>Hipoksemia berat</td></tr></table></div>
+        <div class="section"><h3><span class="emoji">👤</span> Pemeriksaan Fisik</h3>
+        <ul><li><strong>Kardiovaskular:</strong> Gallop S3 (+), JVP meningkat, nadi lemah, akral dingin, capillary refill &gt;4 detik</li><li><strong>Paru:</strong> Ronki basah luas bilateral + wheezing (edema paru akut)</li><li><strong>Abdomen:</strong> Distensi, bising usus menurun</li><li><strong>Kulit:</strong> Pucat, sianosis, diaforesis</li><li><strong>Neurologis:</strong> GCS 12 (somnolen), respon lambat</li></ul></div></div>`
+      },
+      { title: "Penunjang & Diagnosis", step: "IPM-6-8", content: `
+        <div class="section"><h3><span class="emoji">🔬</span> Pemeriksaan Penunjang</h3>
+        <div class="media-box"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><tr style="background:#2c3e50;color:white"><th>Pemeriksaan</th><th>Hasil</th></tr><tr style="border-bottom:1px solid #eee"><td>Troponin I</td><td style="font-weight:700;color:#c0392b;padding:6px">25 ng/mL</td></tr><tr style="border-bottom:1px solid #eee"><td>pH darah</td><td style="font-weight:700;color:#c0392b;padding:6px">7.25 (asidosis metabolik)</td></tr><tr style="border-bottom:1px solid #eee"><td>Laktat</td><td style="font-weight:700;color:#c0392b;padding:6px">6.2 mmol/L</td></tr><tr><td>Kreatinin</td><td style="padding:6px">2.1 mg/dL</td></tr></table></div>
+        <ul><li><strong>EKG:</strong> STEMI anterior luas (ST elevasi V1-V6, I, aVL)</li><li><strong>Ekokardiografi:</strong> EF 25%, akinesis dinding anterior luas, MR fungsional</li></ul>
+        <div class="media-box" style="background:#f0faf0;border-color:#27ae60;margin-top:12px"><h4 style="color:#27ae60">Diagnosis Kerja: Syok Kardiogenik ec STEMI Anterior Luas</h4><p>ICD-10: R57.0 + I21.0 • Killip IV • High-risk (laktat ↑, asidosis, gagal ginjal)</p></div></div>`
+      },
+      { title: "Tatalaksana", step: "IPM-9-12", content: `
+        <div class="section"><h3><span class="emoji">🚨</span> Tatalaksana di FKTP (STABILISASI + RUJUK)</h3>
+        <ul><li><strong>ABC:</strong> Bebaskan jalan napas, O₂ 15 L/masker NRB, intubasi jika GCS &lt;8</li><li><strong>IV Line:</strong> 2 jalur IV besar</li><li><strong>Cairan:</strong> Kristaloid 250-500 mL bolus (hati-hati! kelebihan cairan perburuk edema paru)</li><li><strong>Inotropik:</strong> Dobutamin 5-20 mcg/kg/menit IV (di RS rujukan) — ↓ setelah konsul</li><li><strong>Rujuk SEGERA:</strong> Ke RS dengan ICCU/Cath Lab</li><li><strong>Reperfusi emergensi:</strong> PCI primer atau fibrinolytics</li><li><strong>IABP:</strong> Intra-aortic balloon pump — untuk augmentasi diastolik</li><li><strong>Ventilator:</strong> Untuk pasien dengan gagal napas</li></ul></div>
+        <div class="media-box" style="background:#fff3e0;border-color:#ff9800"><p style="font-weight:600;color:#e65100">⚠️ SYOK KARDIOGENIK = RUJUKAN SEGERA — waktu adalah otot jantung</p><p style="font-size:0.85rem">Pasien harus dirujuk ke RS dengan fasilitas PCI dalam waktu &lt;90 menit. Jangan ditahan di FKTP.</p></div>
+        <div class="section"><h3><span class="emoji">📢</span> Edukasi Keluarga</h3>
+        <ul><li>Jelaskan kondisi kritis kepada keluarga dengan bahasa yang jelas</li><li>Prognosis: Syok kardiogenik mortalitas 50-80% — butuh penanganan intensif</li><li>Dukung keluarga untuk pendampingan psikologis</li><li>Pencegahan: Kontrol faktor risiko (merokok, hipertensi, DM) setelah pulih</li></ul></div>`
+      }
+    ]
+  },
+  // 9. PERIKARDITIS
+  {
+    id: 8, name: "Perikarditis",
+    pages: [
+      { title: "Skenario Kasus", step: "IPM-1", content: `
+        <div class="section"><h3><span class="emoji">🏥</span> Skenario</h3>
+        <p>Seorang laki-laki, 30 tahun, datang ke Puskesmas dengan keluhan nyeri dada tajam seperti ditusuk di daerah retrosternal yang menjalar ke bahu kiri. Nyeri memburuk saat menarik napas dalam (inspirasi), batuk, dan berbaring telentang. Nyeri agak berkurang jika duduk membungkuk ke depan. Pasien juga demam 38.5°C sejak 3 hari dan merasa lemah. Sejak 2 minggu lalu pasien sembuh dari flu berat (ISPA). Tidak ada riwayat hipertensi atau DM.</p></div>
+        <div class="media-box"><svg viewBox="0 0 400 110" style="max-width:100%"><rect width="400" height="110" fill="#fef0ef" rx="12"/><text x="200" y="22" text-anchor="middle" fill="#c0392b" font-weight="700" font-size="13">PERIKARDITIS — INFLAMASI PERIKARDIUM</text><rect x="140" y="35" width="120" height="55" fill="#fff" stroke="#c0392b" rx="6"/><text x="200" y="52" text-anchor="middle" fill="#c0392b" font-weight="600" font-size="10">Perikardium meradang</text><text x="200" y="66" text-anchor="middle" fill="#555" font-size="9">Gesekan → Nyeri</text><text x="200" y="80" text-anchor="middle" fill="#555" font-size="9">Efusi → Tamponade (?),</text><text x="200" y="93" text-anchor="middle" fill="#555" font-size="8">Kronik → Konstriktif</text><text x="200" y="106" text-anchor="middle" fill="#999" font-size="9">Gambar 9.1 — Anatomi perikardium & komplikasi perikarditis</text></svg></div>`
+      },
+      { title: "Gejala", step: "IPM-2", content: `
+        <div class="section"><h3><span class="emoji">🔍</span> Gejala Klinis</h3>
+        <ul><li><strong>Nyeri dada pleuritik:</strong> Tajam, retrosternal, menjalar ke trapezius/tengkuk</li><li>Nyeri diperburuk oleh: Inspirasi dalam, batuk, bersin, berbaring telentang</li><li>Nyeri berkurang dengan: Duduk dan membungkuk ke depan (relieving position)</li><li>Demam (biasanya subfebris-febris) — respons inflamasi</li><li>Malaise, myalgia, fatigue — prodromal viral</li><li>Sesak napas ringan — pasien bernapas dangkal karena nyeri</li></ul></div>`
+      },
+      { title: "TTV & Pemeriksaan Fisik", step: "IPM-3-5", content: `
+        <div class="section"><h3><span class="emoji">🩺</span> Vital Signs & Pemeriksaan Fisik</h3>
+        <div class="media-box"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><tr style="background:#c0392b;color:white"><th>Parameter</th><th>Nilai</th><th>Keterangan</th></tr><tr style="border-bottom:1px solid #eee"><td>TD</td><td style="padding:8px">120/75 mmHg</td><td>Normal (pulsus paradoksus jika efusi besar)</td></tr><tr style="border-bottom:1px solid #eee"><td>Nadi</td><td style="padding:8px">98 x/mnt</td><td>Takikardi ringan</td></tr><tr style="border-bottom:1px solid #eee"><td>Pernapasan</td><td style="padding:8px">24 x/mnt</td><td>Takipnea (napas dangkal)</td></tr><tr><td>Suhu</td><td style="font-weight:700;color:#e67e22;padding:8px">38.5°C</td><td>Febris</td></tr></table></div>
+        <ul><li><strong>Auskultasi Jantung:</strong> Pericardial friction rub (triphasic: sistolik + diastolik + presistolik) — patognomonis! Terdengar seperti kulit baru digosok ("scratchy" sound)</li><li><strong>Iktus kordi:</strong> Normal, tidak bergeser</li><li><strong>Tanda efusi perikard:</strong> Pulsus paradoxus (&gt;10 mmHg), bunyi jantung redup (muffled heart sounds), Ewart sign (konsonasi di bawah sudut skapula kiri)</li><li><strong>Tanda tamponade:</strong> Hipotensi, distensi vena leher, pulsus paradoxus berat (Beck triad)</li></ul></div>`
+      },
+      { title: "Penunjang & Diagnosis", step: "IPM-6-8", content: `
+        <div class="section"><h3><span class="emoji">🔬</span> Pemeriksaan Penunjang</h3>
+        <div class="media-box"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><tr style="background:#2c3e50;color:white"><th>Pemeriksaan</th><th>Hasil</th></tr><tr style="border-bottom:1px solid #eee"><td>CRP</td><td style="font-weight:700;color:#e67e22;padding:6px">85 mg/L (↑)</td></tr><tr style="border-bottom:1px solid #eee"><td>LED</td><td style="font-weight:700;color:#e67e22;padding:6px">70 mm/jam (↑)</td></tr><tr><td>Troponin</td><td style="padding:6px">0.03 ng/mL (negatif)</td></tr></table></div>
+        <ul><li><strong>EKG:</strong> ST elevasi difus (concave upward) di banyak lead + PR depresi — 4 stadium evolusi</li><li><strong>Kriteria EKG perikarditis:</strong> Perubahan ST-T difus, PR depresi, tidak ada Q patologis (beda dengan STEMI)</li><li><strong>Ekokardiografi:</strong> Efusi perikard ringan (10 mm posterior), tidak ada tamponade</li><li><strong>Foto Thoraks:</strong> Jantung normal (tidak kardiomegali), efusi besar → "water bottle configuration"</li></ul>
+        <div class="media-box"><div class="ecg-container"><canvas id="ecgCanvas8"></canvas></div><div class="caption">Gambar 9.2 — EKG: ST elevasi difus concave (perikarditis stadium I)</div></div>
+        <div class="media-box" style="background:#f0faf0;border-color:#27ae60;margin-top:12px"><h4 style="color:#27ae60">Diagnosis Kerja: Perikarditis Akut (IDIOPATIK/VIRAL)</h4><p>ICD-10: I30.9 • Demam, friction rub, ST elevasi difus, efusi perikard ringan</p></div></div>`
+      },
+      { title: "Tatalaksana & Edukasi", step: "IPM-9-12", content: `
+        <div class="section"><h3><span class="emoji">💊</span> Tatalaksana</h3>
+        <ul><li><strong>NSAID lini pertama:</strong> Ibuprofen 400-800 mg 3x/hari (paling aman untuk perikardium) ATAU Aspirin 3-4 g/hari</li><li><strong>Kolkisin:</strong> 0.5 mg 1-2x/hari (mencegah rekurensi!)</li><li><strong>Kortikosteroid:</strong> Hanya jika refrakter/kontraindikasi NSAID (hati-hati)</li><li><strong>Edukasi:</strong> Hindari aktivitas berat 4-6 minggu, kontrol 1 minggu</li><li><strong>Tanda bahaya:</strong> Sesak berat, penurunan TD, distensi vena leher (tamponade) → IGD</li><li><strong>Rujuk:</strong> Jika efusi besar (&gt;20 mm), tamponade, gagal terapi 1 minggu, atau diagnosis meragukan</li></ul></div>
+        <div class="prescription-box"><div class="rx-header"><span class="rx">R / Resep</span><span>Puskesmas</span></div><div class="rx-item"><span class="r">R/</span><span>Ibuprofen 400 mg tab No. XXX<br>S 3 dd 1 tab (setelah makan)</span></div><div class="rx-item"><span class="r">R/</span><span>Kolkisin 0.5 mg tab No. XXX<br>S 1 dd 1 tab</span></div><div class="rx-footer"><p>Pro: Tn. I (30 th) — Hentikan jika muncul nyeri epigastrium — Paraf:</p></div></div>`
+      }
+    ]
+  },
+  // 10. ENDOKARDITIS INFEKTIF
+  {
+    id: 9, name: "Endokarditis Infektif",
+    pages: [
+      { title: "Skenario Kasus", step: "IPM-1", content: `
+        <div class="section"><h3><span class="emoji">🏥</span> Skenario</h3>
+        <p>Seorang perempuan, 35 tahun, datang dengan demam hilang timbul sejak 3 minggu yang tidak mempan dengan antipiretik. Pasien juga mengeluh badan lemah, berkeringat malam, penurunan nafsu makan, dan berat badan turun 5 kg dalam 1 bulan. Riwayat: 3 bulan lalu pasien menjalani perawatan gigi (cabut gigi) tanpa antibiotik profilaksis. Pasien diketahui memiliki penyakit jantung rematik (stenosis mitral ringan) sejak usia 15 tahun, namun tidak kontrol rutin. Pada pemeriksaan ditemukan suara bising jantung baru.</p></div>`
+      },
+      { title: "Gejala", step: "IPM-2", content: `
+        <div class="section"><h3><span class="emoji">🔍</span> Gejala Klinis</h3>
+        <ul><li><strong>Demam:</strong> Prolonged fever, hilang timbul, &gt;38°C, menggigil kaku</li><li><strong>Keringat malam (night sweats)</strong></li><li><strong>Malaise, anorexia, penurunan BB</strong></li><li><strong>Manifestasi emboli:</strong> Petekie (konjungtiva, palatum, ekstremitas), splinter hemoragik (kuku), Janeway lesion (telapak), Osler nod (jari)</li><li><strong>Bising jantung baru atau perubahan bising lama</strong></li><li><strong>Splenomegali</strong> (25-50% kasus)</li><li><strong>Manifestasi imunologis:</strong> Roth spot (retina), glomerulonefritis</li></ul></div>`
+      },
+      { title: "TTV & Pemeriksaan", step: "IPM-3-5", content: `
+        <div class="section"><h3><span class="emoji">🩺</span> Vital Signs & Pemeriksaan Fisik</h3>
+        <div class="media-box"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><tr style="background:#c0392b;color:white"><th>Parameter</th><th>Nilai</th></tr><tr style="border-bottom:1px solid #eee"><td>TD</td><td style="padding:8px">110/65 mmHg</td></tr><tr style="border-bottom:1px solid #eee"><td>Nadi</td><td style="padding:8px;font-weight:700;color:#c0392b">108 x/mnt</td></tr><tr><td>Suhu</td><td style="font-weight:700;color:#e67e22;padding:8px">39.2°C</td></tr></table></div>
+        <ul><li><strong>Kardiovaskular:</strong> Regurgitasi mitral (bising pansistolik baru di apeks) — destruksi katup, S3 gallop</li><li><strong>Kulit:</strong> Petekie konjungtiva (+), splinter hemorrhage di kuku (+), Osler node (+)</li><li><strong>Abdomen:</strong> Splenomegali (teraba 2 cm bawah arcus costae), hepar tidak membesar</li><li><strong>Funduskopi:</strong> Roth spot (perdarahan retina dengan pusat pucat)</li></ul></div>`
+      },
+      { title: "Penunjang & Diagnosis", step: "IPM-6-8", content: `
+        <div class="section"><h3><span class="emoji">🔬</span> Pemeriksaan Penunjang</h3>
+        <div class="media-box"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><tr style="background:#2c3e50;color:white"><th>Pemeriksaan</th><th>Hasil</th></tr><tr style="border-bottom:1px solid #eee"><td>Hb</td><td style="padding:6px">9.8 g/dL (anemia normokromik)</td></tr><tr style="border-bottom:1px solid #eee"><td>LED</td><td style="font-weight:700;color:#e67e22;padding:6px">95 mm/jam</td></tr><tr style="border-bottom:1px solid #eee"><td>CRP</td><td style="font-weight:700;color:#e67e22;padding:6px">120 mg/L</td></tr><tr style="border-bottom:1px solid #eee"><td>Faktor Reumatoid</td><td style="padding:6px">Positif (fenomena imunologi)</td></tr><tr><td>Kultur darah (3x)</td><td style="font-weight:700;color:#c0392b;padding:6px">Streptococcus viridans (+)</td></tr></table></div>
+        <ul><li><strong>EKG:</strong> Sinus takikardia, AV block I (abses perivalvular)</li><li><strong>Ekokardiografi:</strong> Vegetasi pada katup mitral (1.2 cm), regurgitasi mitral berat, abses perivalvular (-)</li><li><strong>Kriteria DUKE:</strong> 2 kriteria mayor + 4 minor → Definite Endokarditis Infektif</li></ul>
+        <div class="media-box" style="background:#f0faf0;border-color:#27ae60;margin-top:12px"><h4 style="color:#27ae60">Diagnosis Kerja: Endokarditis Infektif Subakut (Streptococcus viridans)</h4><p>ICD-10: I33.0 • Vegetasi katup mitral • Kultur (+) • RIwayat PJR + prosedur gigi</p></div></div>`
+      },
+      { title: "Tatalaksana & Edukasi", step: "IPM-9-12", content: `
+        <div class="section"><h3><span class="emoji">💊</span> Tatalaksana</h3>
+        <ul><li><strong>RUJUK ke RS — Endokarditis adalah indikasi rawat inap!</strong></li><li><strong>Antibiotik IV (setelah kultur):</strong> Penisilin G 12-20 juta IU/hari IV + Gentamisin 3 mg/kg/hari IV (terapi sinergis 4-6 minggu)</li><li><strong>Alternatif:</strong> Ceftriaxone 2 g IV/hari + Gentamisin</li><li><strong>Profilaksis endokarditis sebelumnya:</strong> Amoksisilin 2 g oral 1 jam sebelum prosedur gigi</li></ul></div>
+        <div class="section"><h3><span class="emoji">🏨</span> Tatalaksana Khusus</h3>
+        <ul><li><strong>Rujuk Spesialis Jantung & Penyakit Dalam:</strong> Monitoring ketat, follow-up ekokardiografi serial</li><li><strong>Indikasi operasi:</strong> Gagal jantung refrakter, vegetasi besar (&gt;1.5 cm) dengan emboli, abses perivalvular, gagal terapi medikamentosa</li><li><strong>Edukasi:</strong> Kontrol rutin, profilaksis antibiotik sebelum prosedur medis/gigi, kenali gejala kembalinya infeksi (demam, menggigil, lemas)</li></ul></div>`
+      }
+    ]
+  },
+  // 11. DEEP VEIN THROMBOSIS
+  {
+    id: 10, name: "Deep Vein Thrombosis",
+    pages: [
+      { title: "Skenario Kasus", step: "IPM-1", content: `
+        <div class="section"><h3><span class="emoji">🏥</span> Skenario</h3>
+        <p>Seorang perempuan, 55 tahun, datang ke Puskesmas dengan keluhan tungkai kanan bengkak, merah, dan nyeri sejak 3 hari. Tungkai juga terasa berat dan hangat. Pasien selesai operasi histerektomi 2 minggu lalu dan sejak itu kurang bergerak (bed rest). Pasien juga menggunakan kontrasepsi oral kombinasi (estrogen-progesteron). Riwayat: hipertensi terkontrol, tidak ada riwayat trauma. Pasien tidak merokok. Keluhan memberat saat berdiri lama dan membaik dengan elevasi kaki.</p></div>
+        <div class="media-box"><svg viewBox="0 0 400 110"><rect width="400" height="110" fill="#fef0ef" rx="12"/><text x="200" y="20" text-anchor="middle" fill="#c0392b" font-weight="700" font-size="13">VIRCHOW TRIAD — PATOFISIOLOGI DVT</text><rect x="30" y="35" width="100" height="55" fill="#fff" stroke="#c0392b" rx="6"/><text x="80" y="52" text-anchor="middle" fill="#c0392b" font-weight="600" font-size="9">Stasis</text><text x="80" y="66" text-anchor="middle" fill="#555" font-size="8">Bed rest, immobilisasi</text><text x="80" y="78" text-anchor="middle" fill="#555" font-size="8">Operasi, perjalanan jauh</text><rect x="150" y="35" width="100" height="55" fill="#fff" stroke="#2c3e50" rx="6"/><text x="200" y="52" text-anchor="middle" fill="#2c3e50" font-weight="600" font-size="9">Hiperkoagulabilitas</text><text x="200" y="66" text-anchor="middle" fill="#555" font-size="8">Kontrasepsi oral, kanker</text><text x="200" y="78" text-anchor="middle" fill="#555" font-size="8">Defisiensi protein C/S</text><rect x="270" y="35" width="100" height="55" fill="#fff" stroke="#e67e22" rx="6"/><text x="320" y="52" text-anchor="middle" fill="#e67e22" font-weight="600" font-size="9">Kerusakan Endotel</text><text x="320" y="66" text-anchor="middle" fill="#555" font-size="8">Trauma, operasi, kateter</text><text x="320" y="78" text-anchor="middle" fill="#555" font-size="8">Infeksi, vaskulitis</text><text x="200" y="105" text-anchor="middle" fill="#999" font-size="9">Gambar 11.1 — Trias Virchow: 3 faktor penyebab DVT</text></svg></div>`
+      },
+      { title: "Gejala", step: "IPM-2", content: `
+        <div class="section"><h3><span class="emoji">🔍</span> Gejala Klinis</h3>
+        <ul><li><strong>Edema tungkai unilateral:</strong> Bengkak pada satu tungkai (paha atau betis)</li><li><strong>Nyeri:</strong> Rasa berat, nyeri tekan sepanjang vena dalam</li><li><strong>Kemerahan dan hangat lokal</strong></li><li><strong>Pembengkakan betis:</strong> &gt;3 cm dibanding sisi normal (diukur 10 cm bawah tuberositas tibia)</li><li><strong>Sianosis ringan (sianosis terlokalisir)</strong></li><li><strong>Tanda Homans (+):</strong> Nyeri dorsofleksi kaki (sensitivitas rendah)</li><li><strong>Tanda Pratt:</strong> Vena kolateral superfisial melebar</li><li><strong>Jika emboli paru:</strong> Sesak napas tiba-tiba, nyeri dada pleuritik, hemoptisis, takikardi</li></ul></div>`
+      },
+      { title: "TTV & Pemeriksaan", step: "IPM-3-5", content: `
+        <div class="section"><h3><span class="emoji">🩺</span> Vital Signs & Pemeriksaan Fisik</h3>
+        <div class="media-box"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><tr style="background:#c0392b;color:white"><th>Parameter</th><th>Nilai</th></tr><tr style="border-bottom:1px solid #eee"><td>TD</td><td style="padding:8px">125/80 mmHg</td></tr><tr style="border-bottom:1px solid #eee"><td>Nadi</td><td style="padding:8px">96 x/mnt (kompensasi)</td></tr><tr><td>Suhu</td><td style="padding:8px">37.4°C (subfebris)</td></tr></table></div>
+        <ul><li><strong>Inspeksi:</strong> Tungkai kanan edema ++ dari paha sampai kaki, warna kemerahan, vena superfisial melebar</li><li><strong>Palpasi:</strong> Nyeri tekan sepanjang vena femoralis dan poplitea, pitting edema (+), hangat, pulsasi arteri dorsalis pedis teraba</li><li><strong>Pengukuran:</strong> Lingkar betis kanan 42 cm, kiri 36 cm (selisih &gt;3 cm)</li><li><strong>Manuver:</strong> Homans sign (+) — nyeri dorsofleksi, Neuhof sign (+) — nyeri tekan betis</li><li><strong>Wells Score DVT:</strong> 4 poin (risiko tinggi) — skor ≥2 = probable DVT</li></ul></div>`
+      },
+      { title: "Penunjang & Diagnosis", step: "IPM-6-8", content: `
+        <div class="section"><h3><span class="emoji">🔬</span> Pemeriksaan Penunjang</h3>
+        <div class="media-box"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><tr style="background:#2c3e50;color:white"><th>Pemeriksaan</th><th>Hasil</th></tr><tr style="border-bottom:1px solid #eee"><td>D-dimer</td><td style="font-weight:700;color:#c0392b;padding:6px">2500 ng/mL (↑↑)</td></tr><tr style="border-bottom:1px solid #eee"><td>PT/aPTT</td><td style="padding:6px">Normal</td></tr><tr><td>Fibrinogen</td><td style="padding:6px">400 mg/dL (↑)</td></tr></table></div>
+        <ul><li><strong>USG Doppler Vena:</strong> Trombus pada vena femoralis komunis dan vena poplitea — non-kompresibel, tidak ada aliran Doppler</li><li><strong>Venografi:</strong> Gold standard (jarang dilakukan — invasif)</li></ul>
+        <div class="media-box" style="background:#f0faf0;border-color:#27ae60;margin-top:12px"><h4 style="color:#27ae60">Diagnosis Kerja: Deep Vein Thrombosis (DVT) Akut Vena Femoralis-Poplitea Dekstra</h4><p>ICD-10: I80.2 • Wells skor 4 • D-dimer ↑ • USG (+) • Post-op + OCP</p></div></div>`
+      },
+      { title: "Tatalaksana & Edukasi", step: "IPM-9-12", content: `
+        <div class="section"><h3><span class="emoji">💊</span> Tatalaksana</h3>
+        <ul><li><strong>Antikoagulasi segera:</strong> LMWH (Enoxaparin 1 mg/kg/12 jam SC) overlap dengan warfarin (target INR 2-3), ATAU NOAC (Rivaroxaban 15 mg 2x/hari selama 3 minggu lalu 20 mg/hari)</li><li><strong>Kompresi:</strong> Stoking elastis (compression stocking) 30-40 mmHg</li><li><strong>Elevasi tungkai:</strong> &gt;jantung saat istirahat</li><li><strong>Mobilisasi dini:</strong> Segera setelah antikoagulasi efektif</li><li><strong>Lama terapi:</strong> Minimal 3 bulan; 6-12 bulan jika provokasi (+) risiko residual</li></ul></div>
+        <div class="prescription-box"><div class="rx-header"><span class="rx">R / Resep</span><span>Puskesmas</span></div><div class="rx-item"><span class="r">R/</span><span>Rivaroxaban 15 mg tab No. X<br>S 2 dd 1 tab (3 minggu awal)</span></div><div class="rx-item"><span class="r">R/</span><span>Rivaroxaban 20 mg tab No. XXX<br>S 1 dd 1 tab (lanjutan)</span></div><div class="rx-footer"><p>Pro: Ny. K (55 th) — Evaluasi 3 bulan — Hentikan OCP — Paraf:</p></div></div>
+        <div class="section"><h3><span class="emoji">📢</span> Edukasi</h3>
+        <ul><li>Hentikan kontrasepsi oral segera</li><li>Aktif bergerak, hindari immobilisasi lama</li><li>Kompresi stoking selama 2 tahun untuk cegah sindrom post-trombotik</li><li>Kenali tanda PE: sesak napas mendadak, nyeri dada, hemoptisis → IGD</li><li>Kontrol rutin, skrining trombofilia jika terjadi DVT tanpa provokasi</li></ul></div>`
+      }
+    ]
+  },
+  // 12. PENYAKIT ARTERI PERIFER
+  {
+    id: 11, name: "Penyakit Arteri Perifer",
+    pages: [
+      { title: "Skenario Kasus", step: "IPM-1", content: `
+        <div class="section"><h3><span class="emoji">🏥</span> Skenario</h3>
+        <p>Seorang laki-laki, 65 tahun, datang dengan keluhan nyeri pada betis kanan saat berjalan sekitar 100 meter. Nyeri mereda setelah berhenti sejenak (claudication intermiten). Pasien juga sering merasa tungkai dingin dan kesemutan. Keluhan sudah dirasakan sejak 6 bulan lalu dan semakin memberat. Riwayat: hipertensi 15 tahun, DM tipe 2 (tidak terkontrol), dislipidemia, dan merokok 2 bungkus/hari sejak 40 tahun. Pemeriksaan: pulsasi dorsalis pedis kanan sulit teraba.</p></div>
+        <div class="media-box"><svg viewBox="0 0 400 100"><rect width="400" height="100" fill="#fef0ef" rx="12"/><text x="200" y="18" text-anchor="middle" fill="#c0392b" font-weight="700" font-size="13">PATOFISIOLOGI PAD — ATEROSKLEROSIS PERIFER</text><text x="200" y="36" text-anchor="middle" fill="#555" font-size="10">Plak ateroma pada arteri ekstremitas bawah → Stenosis → Iskemia otot saat aktivitas</text><rect x="30" y="45" width="340" height="40" fill="#fee" rx="4"/><text x="50" y="60" fill="#c0392b" font-weight="600" font-size="10">Faktor Risiko:</text><text x="50" y="75" fill="#555" font-size="9">Merokok (terkuat!) • DM • Hipertensi • Dislipidemia • Usia</text></svg></div>`
+      },
+      { title: "Gejala & Pemeriksaan", step: "IPM-2-5", content: `
+        <div class="section"><h3><span class="emoji">🔍</span> Gejala & Klasifikasi Fontaine</h3>
+        <ul><li><strong>Stage I:</strong> Asimtomatik atau rasa dingin/kebas</li><li><strong>Stage IIa:</strong> Claudication intermiten &gt;200 meter</li><li><strong>Stage IIb:</strong> Claudication intermiten &lt;200 meter ← pasien ini</li><li><strong>Stage III:</strong> Nyeri saat istirahat — iskemia kritis</li><li><strong>Stage IV:</strong> Ulkus/gangren — risiko amputasi</li></ul>
+        <div class="section"><h3><span class="emoji">🩺</span> Pemeriksaan Fisik Vaskular</h3>
+        <ul><li><strong>Inspeksi:</strong> Kulit tungkai mengkilap, rambut rontok, kuku menebal, atrofi otot</li><li><strong>Palpasi:</strong> Pulsasi dorsalis pedis (+/-) lemah, tibialis posterior (-), poplitea (+). Akral dingin, capillary refill &gt;3 detik</li><li><strong>Auskultasi:</strong> Bruit arteri femoralis (stenosis)</li><li><strong>ABI (Ankle-Brachial Index):</strong> 0.65 (normal 1.0-1.4, PAD jika &lt;0.9)</li><li><strong>Tanda Buerger:</strong> Tungkai pucat saat elevasi, merah saat dependen</li></ul></div></div>`
+      },
+      { title: "Penunjang & Diagnosis", step: "IPM-6-8", content: `
+        <div class="section"><h3><span class="emoji">🔬</span> Pemeriksaan Penunjang</h3>
+        <div class="media-box"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><tr style="background:#2c3e50;color:white"><th>Parameter</th><th>Hasil</th></tr><tr style="border-bottom:1px solid #eee"><td>GDP</td><td style="font-weight:700;color:#e67e22;padding:6px">198 mg/dL</td></tr><tr style="border-bottom:1px solid #eee"><td>LDL</td><td style="font-weight:700;color:#e67e22;padding:6px">175 mg/dL</td></tr><tr style="border-bottom:1px solid #eee"><td>ABI kanan</td><td style="font-weight:700;color:#c0392b;padding:6px">0.55</td></tr><tr><td>ABI kiri</td><td style="padding:6px">0.85</td></tr></table></div>
+        <ul><li><strong>USG Doppler arteri:</strong> Stenosis &gt;75% arteri femoralis superfisialis kanan</li><li><strong>Angiografi:</strong> Gold standard — gambaran stenosis segmental</li></ul>
+        <div class="media-box" style="background:#f0faf0;border-color:#27ae60;margin-top:12px"><h4 style="color:#27ae60">Diagnosis Kerja: Peripheral Artery Disease (PAD) — Fontaine IIb</h4><p>ICD-10: I73.9 • ABI 0.55 • Claudication &lt;100 m • DM, HT, smoking</p></div></div>`
+      },
+      { title: "Tatalaksana & Edukasi", step: "IPM-9-12", content: `
+        <div class="section"><h3><span class="emoji">💊</span> Tatalaksana</h3>
+        <ul><li><strong>Modifikasi risiko (MUTLAK):</strong> Berhenti merokok! — intervensi paling penting</li><li><strong>Antiplatelet:</strong> Aspirin 80-100 mg/hari ATAU Clopidogrel 75 mg/hari</li><li><strong>Statin intensitas tinggi:</strong> Atorvastatin 40-80 mg/hari (target LDL &lt;100)</li><li><strong>Cilostazol:</strong> 100 mg 2x/hari — perbaiki jarak berjalan (kontraindikasi gagal jantung)</li><li><strong>Latihan berjalan terstruktur:</strong> 30-45 menit, 3-5x/minggu — efektif memperbaiki gejala</li><li><strong>Kontrol DM:</strong> Target HbA1c &lt;7%</li><li><strong>Rawat kaki:</strong> Inspeksi harian, gunakan alas kaki, hindari trauma</li></ul></div>
+        <div class="section"><h3><span class="emoji">🏨</span> Tatalaksana Khusus</h3>
+        <ul><li><strong>Rujuk spesialis jantung/bedah vaskular:</strong> Jika claudication memberat, ABI &lt;0.5, nyeri istirahat, ulkus/gangren</li><li><strong>Revaskularisasi:</strong> Angioplasti/stenting atau bypass femoropopliteal</li><li><strong>Indikasi amputasi:</strong> Gangren luas yang tidak bisa diselamatkan</li></ul></div>`
+      }
+    ]
+  },
+  // 13. HIPERTENSI PULMONAL
+  {
+    id: 12, name: "Hipertensi Pulmonal",
+    pages: [
+      { title: "Skenario Kasus", step: "IPM-1", content: `
+        <div class="section"><h3><span class="emoji">🏥</span> Skenario</h3>
+        <p>Seorang perempuan, 40 tahun, datang dengan sesak napas progresif sejak 6 bulan terakhir (NYHA III). Pasien juga mudah lelah, kadang nyeri dada ringan, dan pernah pingsan saat menyapu (syncope exertional). Pada pemeriksaan ditemukan tanda-tanda gagal jantung kanan: edema tungkai, hepatomegali, JVP meningkat. Riwayat: pasien memiliki riwayat penyakit jantung rematik (stenosis mitral) sejak kecil dan tidak pernah operasi. Tidak merokok atau DM.</p></div>
+        <div class="media-box" style="background:#fce4e4;border-color:#c0392b"><span style="font-weight:700;color:#c0392b">⚠️ Hipertensi Pulmonal: Tekanan arteri pulmonal rata-rata &gt;25 mmHg saat istirahat (kateterisasi jantung kanan)</span></div>`
+      },
+      { title: "Gejala & Pemeriksaan", step: "IPM-2-5", content: `
+        <div class="section"><h3><span class="emoji">🔍</span> Gejala Klinis</h3>
+        <ul><li><strong>Dyspnea on exertion (paling sering):</strong> Progresif, sampai akhirnya sesak saat istirahat</li><li><strong>Fatigue dan lemas</strong></li><li><strong>Angina (nyeri dada):</strong> Kompresi RV dan iskemia relatif</li><li><strong>Sinkop exertional:</strong> Penurunan CO saat aktivitas — tanda lanjut!</li><li><strong>Edema perifer, asites, hepatomegali</strong> — gagal jantung kanan</li><li><strong>Sianosis sentral</strong> (pada stadium lanjut)</li></ul>
+        <div class="section"><h3><span class="emoji">🩺</span> Vital Signs & Pemeriksaan</h3>
+        <div class="media-box"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><tr style="background:#c0392b;color:white"><th>Parameter</th><th>Nilai</th></tr><tr style="border-bottom:1px solid #eee"><td>TD</td><td style="padding:8px">105/70 mmHg</td></tr><tr style="border-bottom:1px solid #eee"><td>Nadi</td><td style="padding:8px;font-weight:700;color:#c0392b">106 x/mnt</td></tr><tr style="border-bottom:1px solid #eee"><td>Pernapasan</td><td style="padding:8px">26 x/mnt</td></tr><tr><td>SpO₂</td><td style="font-weight:700;color:#e67e22;padding:8px">90%</td></tr></table></div>
+        <ul><li><strong>Jantung:</strong> RV heave (+), P2 mengeras (komponen pulmonal S2), S3 gallop kanan, murmur trikuspid regurgitasi</li><li><strong>Leher:</strong> JVP meningkat dengan gelombang a dominan</li><li><strong>Abdomen:</strong> Hepatomegali, asites (+)</li><li><strong>Ekstremitas:</strong> Edema tungkai, akral dingin</li></ul></div>`
+      },
+      { title: "Penunjang & Diagnosis", step: "IPM-6-8", content: `
+        <div class="section"><h3><span class="emoji">🔬</span> Pemeriksaan Penunjang</h3>
+        <div class="media-box"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><tr style="background:#2c3e50;color:white"><th>Pemeriksaan</th><th>Hasil</th></tr><tr style="border-bottom:1px solid #eee"><td>EKG</td><td style="padding:6px">RVH (R/S V1 &gt;1, RAD, P pulmonal)</td></tr><tr style="border-bottom:1px solid #eee"><td>Foto Thoraks</td><td style="padding:6px">Pulmonary artery segment menonjol, kardiomegali kanan</td></tr><tr><td>Ekokardiografi</td><td style="padding:6px">PAP 65 mmHg, RV dilated, septum paradoks</td></tr></table></div>
+        <ul><li><strong>BNP:</strong> 450 pg/mL (↑)</li><li><strong>Kateterisasi jantung kanan:</strong> Gold standard — mPAP 45 mmHg, PCWP 20 mmHg (post-capillary PH ec PJR)</li><li><strong>6-minute walk test:</strong> 280 meter (normal &gt;450m) — berkurang signifikan</li></ul>
+        <div class="media-box" style="background:#f0faf0;border-color:#27ae60;margin-top:12px"><h4 style="color:#27ae60">Diagnosis Kerja: Hipertensi Pulmonal (Group 2 — akibat penyakit jantung kiri)</h4><p>ICD-10: I27.0 • PAP 65 mmHg • post-capillary • ec stenosis mitral</p></div></div>`
+      },
+      { title: "Tatalaksana & Edukasi", step: "IPM-9-12", content: `
+        <div class="section"><h3><span class="emoji">💊</span> Tatalaksana</h3>
+        <ul><li><strong>Tata kelola penyakit dasar:</strong> Stenosis mitral → koreksi katup (mitral valve surgery)</li><li><strong>Diuretik:</strong> Furosemid 40 mg/hari (kurangi preload)</li><li><strong>Antikoagulasi:</strong> Jika FA/CKD (Rivaroxaban 20 mg/hari)</li><li><strong>Oksigen:</strong> Jika SpO₂ &lt;90%</li><li><strong>Terapi spesifik PH (rujukan):</strong> Phosphodiesterase-5 inhibitor (Sildenafil), Endothelin receptor antagonist (Bosentan), Prostacyclin analog</li></ul></div>
+        <div class="section"><h3><span class="emoji">📢</span> Edukasi & Rujukan</h3>
+        <ul><li><strong>Rujuk ke spesialis jantung:</strong> Untuk koreksi katup dan terapi spesifik PH</li><li><strong>Aktivitas:</strong> Hindari aktivitas berat dan Valsalva (sinkop)</li><li><strong>Kehamilan:</strong> Kontraindikasi — mortalitas ibu 30-50%</li><li><strong>Vaksinasi:</strong> Influenza dan pneumonia</li><li><strong>Prognosis:</strong> Tergantung respons terapi — butuh monitoring ketat</li></ul></div>`
+      }
+    ]
+  },
+  // 14. MIOKARDITIS
+  {
+    id: 13, name: "Miokarditis",
+    pages: [
+      { title: "Skenario Kasus", step: "IPM-1", content: `
+        <div class="section"><h3><span class="emoji">🏥</span> Skenario</h3>
+        <p>Seorang laki-laki, 25 tahun, mahasiswa, datang dengan sesak napas onset tiba-tiba sejak 3 hari. 2 minggu sebelumnya pasien sembuh dari demam, batuk, pilek (influenza like illness). Pasien mengeluh nyeri dada ringan dan jantung berdebar. Awalnya dikira sesak karena kekambuhan asma, tapi inhaler tidak mempan. Pada pemeriksaan: takikardi, gallop S3, dan ronki basah basal. Pasien tidak punya riwayat hipertensi, DM, atau penyakit jantung sebelumnya.</p></div>
+        <div class="media-box"><svg viewBox="0 0 400 100"><rect width="400" height="100" fill="#fef0ef" rx="12"/><text x="200" y="20" text-anchor="middle" fill="#c0392b" font-weight="700" font-size="13">MIOKARDITIS VIRAL — PATOGENESIS</text><text x="200" y="38" text-anchor="middle" fill="#555" font-size="10">Infeksi virus → Invasi miokard → Response imun & inflamasi → Nekrosis kardiomiosit</text><text x="200" y="56" text-anchor="middle" fill="#555" font-size="10">→ Disfungsi ventrikel, aritmia, gagal jantung akut</text><text x="200" y="76" text-anchor="middle" fill="#999" font-size="9">Virus: Coxsackie B, Influenza, Adenovirus, COVID-19, EBV</text></svg></div>`
+      },
+      { title: "Gejala & Pemeriksaan", step: "IPM-2-5", content: `
+        <div class="section"><h3><span class="emoji">🔍</span> Gejala Klinis</h3>
+        <ul><li><strong>Prodromal viral:</strong> Demam, myalgia, fatigue, ISPA 1-4 minggu sebelumnya</li><li><strong>Gagal jantung akut:</strong> Sesak napas, ortopnea, PND, edema paru</li><li><strong>Nyeri dada pleuritik (50-70%):</strong> Karena perikarditis yang menyertai (mioperikarditis)</li><li><strong>Palpitasi dan aritmia:</strong> Sinus takikardia, AV block, VT</li><li><strong>Syok kardiogenik:</strong> Pada kasus fulminan</li><li><strong>Kematian mendadak (sudden death)</strong> — terutama pada atlet muda!</li></ul>
+        <div class="section"><h3><span class="emoji">🩺</span> Vital Signs & Pemeriksaan Fisik</h3>
+        <div class="media-box"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><tr style="background:#c0392b;color:white"><th>Parameter</th><th>Nilai</th></tr><tr style="border-bottom:1px solid #eee"><td>TD</td><td style="padding:8px">100/65 mmHg</td></tr><tr style="border-bottom:1px solid #eee"><td>Nadi</td><td style="padding:8px;font-weight:700;color:#c0392b">115 x/mnt</td></tr><tr style="border-bottom:1px solid #eee"><td>Suhu</td><td style="padding:8px">37.8°C</td></tr><tr><td>SpO₂</td><td style="font-weight:700;color:#e67e22;padding:8px">91%</td></tr></table></div>
+        <ul><li><strong>Jantung:</strong> S3 gallop (patognomonis gagal ventrikel), S4, friction rub (jika perikarditis), murmur regurgitasi mitral fungsional</li><li><strong>Paru:</strong> Ronki basah basal — kongesti paru</li><li><strong>Ekstremitas:</strong> Edema (-) karena akut, akral dingin</li></ul></div>`
+      },
+      { title: "Penunjang & Diagnosis", step: "IPM-6-8", content: `
+        <div class="section"><h3><span class="emoji">🔬</span> Pemeriksaan Penunjang</h3>
+        <div class="media-box"><table style="width:100%;border-collapse:collapse;font-size:0.85rem"><tr style="background:#2c3e50;color:white"><th>Pemeriksaan</th><th>Hasil</th></tr><tr style="border-bottom:1px solid #eee"><td>Troponin I</td><td style="font-weight:700;color:#c0392b;padding:6px">8.5 ng/mL (↑)</td></tr><tr style="border-bottom:1px solid #eee"><td>CK-MB</td><td style="font-weight:700;color:#e67e22;padding:6px">45 U/L (↑)</td></tr><tr style="border-bottom:1px solid #eee"><td>CRP</td><td style="font-weight:700;color:#e67e22;padding:6px">90 mg/L</td></tr><tr><td>PCR virus</td><td style="padding:6px">Coxsackie B (+) pada feses</td></tr></table></div>
+        <ul><li><strong>EKG:</strong> Sinus takikardia, ST elevasi difus (mirip perikarditis), AV block derajat I, T inverted</li><li><strong>Ekokardiografi:</strong> LVEF 35% (sangat ↓), hipokinesis global, dilatasi LV ringan, tidak ada hipertrofi</li><li><strong>CMR (Cardiac MRI):</strong> Gold standard non-invasif — late gadolinium enhancement (LGE) pada lapisan mid-miokard/epikardial</li><li><strong>Biopsi miokard:</strong> Gold standard — infiltrat inflamasi + nekrosis kardiomiosit (jarang dilakukan)</li></ul>
+        <div class="media-box" style="background:#f0faf0;border-color:#27ae60;margin-top:12px"><h4 style="color:#27ae60">Diagnosis Kerja: Miokarditis Akut (Viral — Coxsackie B)</h4><p>ICD-10: I40.0 • EF 35% • Trop ↑ • post-ILI 2 minggu</p></div></div>`
+      },
+      { title: "Tatalaksana & Edukasi", step: "IPM-9-12", content: `
+        <div class="section"><h3><span class="emoji">💊</span> Tatalaksana</h3>
+        <ul><li><strong>RUJUK ke RS — tatalaksana suportif rawat inap</strong></li><li><strong>Gagal jantung akut:</strong> Diuretik (Furosemid IV), ACEi (Ramipril), β-blocker (Bisoprolol — hati-hati, mulai dosis rendah)</li><li><strong>Aritmia:</strong> Monitor EKG kontinu, antiaritmia sesuai indikasi</li><li><strong>Hindari NSAID pada akut:</strong> Dapat memperburuk inflamasi miokard (kontroversial)</li><li><strong>Imunoglobulin IV:</strong> Pada kasus tertentu (miokarditis fulminan)</li><li><strong>Bed rest total:</strong> Hindari aktivitas fisik 3-6 bulan</li></ul></div>
+        <div class="section"><h3><span class="emoji">📢</span> Edukasi & Prognosis</h3>
+        <ul><li>Istirahat total — aktivitas fisik meningkatkan risiko aritmia maligna</li><li>Larangan olahraga kompetitif minimal 6 bulan</li><li>Follow-up ekokardiografi serial (1, 3, 6, 12 bulan)</li><li>50-70% pasien membaik spontan, namun ada risiko kardiomiopati dilatasi permanen</li><li>Jika stabil → kontrol rutin di FKTP, jika memburuk → rujuk kembali</li></ul></div>`
+      }
+    ]
+  },
+  // 15. HENTI JANTUNG (CARDIAC ARREST)
+  {
+    id: 14, name: "Henti Jantung",
+    pages: [
+      { title: "Skenario Kasus & Definisi", step: "IPM-1", content: `
+        <div class="section"><h3><span class="emoji">🏥🚨</span> Skenario — Gawat Darurat</h3>
+        <p>Seorang laki-laki, 58 tahun, tiba-tiba collapse saat berada di ruang tunggu Puskesmas. Pasien datang dengan keluhan nyeri dada 30 menit sebelumnya. Tiba-tiba pasien jatuh dari kursi, tidak sadar, tidak bernapas, dan tidak teraba nadi karotis. Petugas Puskesmas segera merespon dengan BLS (Basic Life Support). Irama yang terdeteksi pada AED: Ventricular Fibrillation (VF).</p></div>
+        <div class="media-box" style="background:#fce4e4;border-color:#c0392b"><span style="font-weight:700;color:#c0392b">🚨 HENTI JANTUNG: Henti sirkulasi mendadak akibat kehilangan fungsi mekanis jantung — dapat reversibel dengan intervensi cepat (Chain of Survival)</span></div>
+        <div class="media-box"><svg viewBox="0 0 400 80"><rect width="400" height="80" fill="#fff5f5" rx="8"/><text x="200" y="20" text-anchor="middle" fill="#c0392b" font-weight="700" font-size="12">TAUTAN KELANGSUNGAN HIDUP (CHAIN OF SURVIVAL)</text><text x="200" y="38" text-anchor="middle" fill="#555" font-size="9">1. Early Recognition → 2. Early CPR → 3. Early Defibrillation → 4. ACLS → 5. Post-Cardiac Arrest Care</text><text x="200" y="60" text-anchor="middle" fill="#c0392b" font-weight="700" font-size="11">Golden Period: 3-5 menit tanpa CPR → kerusakan otak ireversibel</text></svg></div>`
+      },
+      { title: "Pengenalan & Diagnosis", step: "IPM-2-8", content: `
+        <div class="section"><h3><span class="emoji">🔍</span> Langkah-Langkah BLS (AHA 2020)</h3>
+        <ul><li><strong>D — Danger:</strong> Pastikan lingkungan aman</li><li><strong>R — Response:</strong> Tepuk bahu, panggil: "Pak! Pak! Sadar?!"</li><li><strong>S — Shout for help:</strong> Minta tolong, aktifkan sistem emergensi, minta AED</li><li><strong>C — Circulation:</strong> Cek nadi karotis (5-10 detik). Jika tidak ada → mulai kompresi dada</li><li><strong>A — Airway:</strong> Head tilt-chin lift (jaw thrust jika curiga trauma)</li><li><strong>B — Breathing:</strong> 2 napas buatan (500-600 mL) setiap 30 kompresi</li><li><strong>Kompresi:</strong> 100-120 x/menit, kedalaman 5-6 cm, recoil penuh</li><li><strong>Rasio:</strong> 30:2 (30 kompresi, 2 ventilasi) — single rescuer</li><li><strong>AED:</strong> Pasang, analisis irama. Jika VF/VT → SHOCK! Segera lanjut CPR 2 menit</li></ul>
+        <div class="media-box" style="background:#f0faf0;border-color:#27ae60;margin-top:12px"><h4 style="color:#27ae60">Diagnosis Kerja: Henti Jantung (Cardiac Arrest) — irama VF</h4><p>ICD-10: I46.9 • Klinis: tidak sadar, tidak bernapas, tidak ada nadi</p></div></div>`
+      },
+      { title: "Tatalaksana BLS & ACLS", step: "IPM-9-11", content: `
+        <div class="section"><h3><span class="emoji">🚨</span> Tatalaksana ACLS — Irama VF/VT tanpa nadi</h3>
+        <ul><li><strong>SHOCK:</strong> Biphasic 120-200J; Monophasic 360J. Setelah shock → CPR 2 menit</li><li><strong>Episode 1:</strong> Shock + CPR 2 menit → cek irama: VF persisten → Shock lagi 2 menit</li><li><strong>Episode 2:</strong> Shock + CPR 2 menit → pasang IV/IO → Epinefrin 1 mg IV setiap 3-5 menit</li><li><strong>Episode 3:</strong> Shock + CPR 2 menit → Amiodaron 300 mg IV bolus (lalu 150 mg tambahan)</li><li><strong>Episode 4+:</strong> Shock + CPR + Epinefrin + Amiodaron setiap 2 menit</li><li><strong>Reversible Causes (5H & 5T):</strong> Hipovolemia, Hipoksia, H+, Hipo/Hiperkalemia, Hipotermia — Tension PTX, Tamponade, Toksin, Trombosis koroner, Trombosis pulmonal</li></ul></div>
+        <div class="media-box" style="background:#fff3e0;border-color:#ff9800"><p style="font-weight:600;color:#e65100">⚠️ ALGORITMA VF/VT: SHOCK → CPR 2menit → SHOCK → CPR 2menit → Epinefrin → SHOCK → CPR → Amiodaron</p></div>
+        <div class="section"><h3><span class="emoji">🏨</span> Post-Cardiac Arrest Care</h3>
+        <ul><li>ROSC (Return of Spontaneous Circulation) tercapai → segera rujuk ke ICU</li><li>Target SpO₂ 94-98%, ETCO₂ 35-45 mmHg, TD sistol &gt;90 mmHg</li><li>Targeted Temperature Management (TTM) 32-36°C selama 24 jam</li><li>PCI emergensi jika STEMI penyebab</li><li>Kontrol gula darah, elektrolit, kejang</li></ul></div>`
+      },
+      { title: "Pencegahan & Edukasi", step: "IPM-12", content: `
+        <div class="section"><h3><span class="emoji">📢</span> Pencegahan & Edukasi Masyarakat</h3>
+        <ul><li><strong>Skrining faktor risiko:</strong> Hipertensi, DM, dislipidemia, merokok — kendalikan!</li><li><strong>Edukasi masyarakat awam:</strong> Latihan BLS untuk masy umum — "hands-only CPR"</li><li><strong>Pasang AED di tempat umum:</strong> Mall, bandara, stadion, puskesmas</li><li><strong>Edukasi keluarga pasien risiko:</strong> Kenali gejala prekursor (nyeri dada, sesak, palpitasi, sinkop)</li><li><strong>Untuk pasien pasca-henti jantung:</strong> ICD (Implantable Cardioverter-Defibrillator) untuk pencegahan sekunder</li><li><strong>Rehabilitasi jantung dan psikologis</strong></li></ul></div>
+        <div class="media-box" style="background:#e8f5e9;border-color:#4caf50"><p style="font-weight:600;color:#2e7d32">🎯 CHAIN OF SURVIVAL: Semakin cepat setiap mata rantai, semakin tinggi angka harapan hidup</p><p style="font-size:0.85rem;margin-top:4px">Setiap menit tanpa defibrilasi → survival rate menurun 7-10%</p></div>`
+      }
+    ]
+  }
+];
+
+function init() {
+  renderDiseaseList();
+  loadDisease(0);
+  initECG();
+}
+
+function renderDiseaseList() {
+  const list = document.getElementById('diseaseList');
+  DISEASES.forEach((d, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="num">${i+1}</span><span class="name">${d.name}</span>`;
+    li.onclick = () => goToDisease(i);
+    li.id = `disease-${i}`;
+    list.appendChild(li);
+  });
+}
+
+function goToDisease(idx) {
+  if (isFlipping) return;
+  currentDisease = idx;
+  currentPage = 0;
+  loadDisease(idx);
+  document.querySelectorAll('.disease-list li').forEach(li => li.classList.remove('active'));
+  document.getElementById(`disease-${idx}`).classList.add('active');
+}
+
+function loadDisease(idx) {
+  const disease = DISEASES[idx];
+  const book = document.getElementById('flipbook');
+  book.innerHTML = '';
+  
+  disease.pages.forEach((page, i) => {
+    const div = document.createElement('div');
+    div.className = 'page' + (i === 0 ? ' active' : '');
+    div.id = `page-${idx}-${i}`;
+    
+    // Process differential diagnosis pages
+    let content = page.content;
+    if (content.includes('class="dd-list"')) {
+      const ddMatch = content.match(/id="(ddList\d+)"/);
+      if (ddMatch) {
+        // Will populate after render
+      }
+    }
+    
+    div.innerHTML = `
+      <div class="page-header">
+        <span class="step">${page.step || ''}</span>
+        <span class="page-title">${page.title}</span>
+        <span class="page-num">${i+1}/${disease.pages.length}</span>
+      </div>
+      ${content}
+    `;
+    book.appendChild(div);
+  });
+  
+  // Populate differential diagnoses
+  DISEASES.forEach((d, di) => {
+    d.pages.forEach((p, pi) => {
+      if (p.content.includes('class="dd-list"')) {
+        const container = document.getElementById(`ddList${di}`);
+        if (container) {
+          const dds = p.differentialDiagnoses || [
+            { name: "Diagnosis Banding A", desc: "Klik untuk detail" },
+            { name: "Diagnosis Banding B", desc: "Klik untuk detail" },
+            { name: "Diagnosis Banding C", desc: "Klik untuk detail" },
+            { name: "Diagnosis Banding D", desc: "Klik untuk detail" }
+          ];
+          dds.forEach(dd => {
+            const item = document.createElement('div');
+            item.className = 'dd-item';
+            item.innerHTML = `<div class="dd-title">${dd.name}</div><div class="dd-desc">${dd.desc}</div>`;
+            item.onclick = () => item.classList.toggle('reveal');
+            container.appendChild(item);
+          });
+        }
+      }
+    });
+  });
+  
+  updateUI();
+  drawECGs();
+}
+
+function updateUI() {
+  const disease = DISEASES[currentDisease];
+  document.getElementById('flipTitle').textContent = disease.name;
+  document.getElementById('flipBadge').textContent = `${currentDisease+1}/${DISEASES.length}`;
+  document.getElementById('pageNum').textContent = currentPage + 1;
+  document.getElementById('pageTotal').textContent = disease.pages.length;
+  
+  document.getElementById('prevBtn').disabled = currentPage === 0;
+  document.getElementById('nextBtn').disabled = currentPage === disease.pages.length - 1;
+  
+  // Show active page
+  document.querySelectorAll('.page').forEach((el, i) => {
+    el.classList.toggle('active', i === currentPage);
+  });
+}
+
+function nextPage() {
+  if (isFlipping) return;
+  const disease = DISEASES[currentDisease];
+  if (currentPage >= disease.pages.length - 1) return;
+  
+  isFlipping = true;
+  const oldPage = document.getElementById(`page-${currentDisease}-${currentPage}`);
+  oldPage.classList.add('flipping');
+  
+  setTimeout(() => {
+    oldPage.classList.remove('active', 'flipping');
+    currentPage++;
+    const newPage = document.getElementById(`page-${currentDisease}-${currentPage}`);
+    newPage.classList.add('flipping-in');
+    updateUI();
+    setTimeout(() => {
+      newPage.classList.remove('flipping-in');
+      isFlipping = false;
+    }, 500);
+  }, 350);
+}
+
+function prevPage() {
+  if (isFlipping) return;
+  if (currentPage <= 0) return;
+  
+  isFlipping = true;
+  const oldPage = document.getElementById(`page-${currentDisease}-${currentPage}`);
+  oldPage.classList.add('flipping');
+  oldPage.style.animation = 'flipOut 0.6s ease reverse';
+  
+  setTimeout(() => {
+    oldPage.classList.remove('active', 'flipping');
+    oldPage.style.animation = '';
+    currentPage--;
+    const newPage = document.getElementById(`page-${currentDisease}-${currentPage}`);
+    newPage.classList.add('active');
+    updateUI();
+    setTimeout(() => { isFlipping = false; }, 300);
+  }, 350);
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextPage();
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prevPage();
+});
+
+// ============================================================
+// ECG SIMULATOR (Canvas-based)
+// ============================================================
+function initECG() {
+  // Will be called when needed
+}
+
+function drawECGs() {
+  const c1 = document.getElementById('ecgCanvas1');
+  if (c1) drawECG(c1, 'lvh');          // Hipertensi — LVH
+  const c2 = document.getElementById('ecgCanvas2');
+  if (c2) drawECG(c2, 'stemi');         // IMA — STEMI
+  const c3 = document.getElementById('ecgCanvas3');
+  if (c3) drawECG(c3, 'chf');           // Gagal Jantung — LVH + Q patologis
+  const c5 = document.getElementById('ecgCanvas5');
+  if (c5) drawECG(c5, 'afib');          // FA — Fibrilasi Atrium
+  const c6 = document.getElementById('ecgCanvas6');
+  if (c6) drawECG(c6, 'pmitrale');      // PJR — P mitrale
+  const c8 = document.getElementById('ecgCanvas8');
+  if (c8) drawECG(c8, 'pericarditis');  // Perikarditis — ST elevasi difus
+}
+
+function drawECG(canvas, type) {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = Math.min(800, rect.width - 20) * 2;
+  canvas.height = 120 * 2;
+  canvas.style.width = (canvas.width / 2) + 'px';
+  canvas.style.height = '120px';
+  
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.scale(2, 2);
+  
+  // Background (grid)
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, w/2, h/2);
+  
+  // Small grid
+  ctx.strokeStyle = '#e0e0e0';
+  ctx.lineWidth = 0.3;
+  for (let x = 0; x < w/2; x += 5) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h/2); ctx.stroke();
+  }
+  for (let y = 0; y < h/2; y += 5) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w/2, y); ctx.stroke();
+  }
+  
+  // Big grid (25 small squares = 1 big)
+  ctx.strokeStyle = '#d0d0d0';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < w/2; x += 25) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h/2); ctx.stroke();
+  }
+  for (let y = 0; y < h/2; y += 25) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w/2, y); ctx.stroke();
+  }
+  
+  // ECG signal
+  ctx.strokeStyle = '#c0392b';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  
+  const midY = h/4;
+  let amplitude = 20;
+  if (type === 'stemi') amplitude = 28;
+  else if (type === 'afib') amplitude = 18;
+  else if (type === 'pericarditis') amplitude = 22;
+  
+  // Generate ECG-like waveform based on type
+  const isAFib = type === 'afib';
+  const points = [];
+  for (let x = 0; x < w/2 - 40; x += 1) {
+    let y = midY;
+    const t = x / 20;
+    
+    if (isAFib) {
+      // FIBRILASI ATRIUM: P hilang, baseline fibrilasi (f waves), QRS irreguler
+      y += (Math.random() - 0.5) * 2.5; // fibrilasi f
+      if (x % 60 > 46 && x % 60 < 52) {
+        y -= Math.sin(((x % 60) - 46) / 6 * Math.PI) * (14 + (x % 7) * 2);
+      } else if (x % 60 > 52 && x % 60 < 58) {
+        y += Math.sin(((x % 60) - 52) / 6 * Math.PI) * 4;
+      }
+    } else if (type === 'pericarditis') {
+      // PERIKARDITIS: ST elevasi difus, PR depresi
+      if (x < 10) { y += Math.sin(t * 0.1) * 1; }
+      else if (x >= 10 && x < 30) { const p = (x - 10) / 20; y -= Math.sin(p * Math.PI) * 5; }
+      else if (x >= 30 && x < 55) { y += Math.sin(t * 0.1) * 0.5; }
+      else if (x >= 55 && x < 75) { const q = (x - 55) / 20; y += Math.sin(q * Math.PI) * 3; y -= Math.sin(q * Math.PI) * amplitude; }
+      else if (x >= 75 && x < 95) { y += Math.sin((x - 75) / 20 * Math.PI) * 5; }
+      else if (x >= 95 && x < 115) { y -= 3; } // ST elevasi!
+      else if (x >= 115 && x < 155) { const tw = (x - 115) / 40; y -= Math.sin(tw * Math.PI) * 8; }
+      else { y += Math.sin(t * 0.1) * 0.5; }
+    } else if (type === 'pmitrale') {
+      // P MITRALE (P bifid) pada PJR
+      if (x < 10) { y += Math.sin(t * 0.1); }
+      else if (x >= 10 && x < 20) { const p1 = (x - 10) / 10; y -= Math.sin(p1 * Math.PI) * 4; }
+      else if (x >= 20 && x < 25) { y += Math.sin(t * 0.2) * 1; }
+      else if (x >= 25 && x < 35) { const p2 = (x - 25) / 10; y -= Math.sin(p2 * Math.PI) * 4; } // P bifid!
+      else if (x >= 35 && x < 60) { y += Math.sin(t * 0.1) * 0.5; }
+      else if (x >= 60 && x < 80) { const q = (x - 60) / 20; y += Math.sin(q * Math.PI) * 3; y -= Math.sin(q * Math.PI) * amplitude; }
+      else if (x >= 80 && x < 95) { y += Math.sin((x - 80) / 15 * Math.PI) * 5; }
+      else if (x >= 95 && x < 120) { y += 0.5; }
+      else if (x >= 120 && x < 160) { const tw = (x - 120) / 40; y += Math.sin(tw * Math.PI) * 7; }
+      else { y += Math.sin(t * 0.1) * 0.5; }
+    } else {
+      // STANDARD: hipertensi/LVH, CHF, STEMI
+      if (x < 10) { y += Math.sin(t * 0.1) * 1; }
+      else if (x >= 10 && x < 30) { const p = (x - 10) / 20; y -= Math.sin(p * Math.PI) * (type === 'lvh' ? 8 : 6); }
+      else if (x >= 30 && x < 60) { y += Math.sin(t * 0.1) * 1; }
+      else if (x >= 60 && x < 105) {
+        const q = (x - 60) / 45;
+        if (q < 0.2) { y += Math.sin(q / 0.2 * Math.PI) * 4; }
+        else if (q < 0.35) { y -= Math.sin((q - 0.2) / 0.15 * Math.PI) * amplitude; }
+        else if (q < 0.5) { y += Math.sin((q - 0.35) / 0.15 * Math.PI) * 6; }
+        else { y += Math.sin(t * 0.1) * 1; }
+      } else if (x >= 105 && x < 140) {
+        if (type === 'stemi') { y -= 4; }
+        else if (type === 'lvh') { y += Math.sin(t * 0.2) * 1; }
+        else { y += Math.sin(t * 0.2) * 0.5; }
+      } else if (x >= 140 && x < 190) {
+        const tw = (x - 140) / 50;
+        if (type === 'stemi') { y -= Math.sin(tw * Math.PI) * 10; }
+        else if (type === 'chf') { y += Math.sin(tw * Math.PI) * 7; }
+        else { y += Math.sin(tw * Math.PI) * (type === 'lvh' ? 6 : 8); }
+      } else if (x >= 190 && x < 210) { y += Math.sin(t * 0.1) * 1; }
+    }
+    
+    points.push({ x: x + 20, y: y });
+  }
+  
+  // Draw the waveform
+  points.forEach((p, i) => {
+    if (i === 0) ctx.moveTo(p.x, p.y);
+    else ctx.lineTo(p.x, p.y);
+  });
+  ctx.stroke();
+  
+  // Labels
+  ctx.fillStyle = '#2c3e50';
+  ctx.font = 'bold 11px sans-serif';
+  const labels = {
+    'lvh': 'EKG: LVH (Sokolow-Lyon >35mm) - Strain pattern',
+    'stemi': 'EKG: STEMI Anterior (ST Elevasi V1-V4)',
+    'chf': 'EKG: CHF — LVH + Q patologis (infark lama)',
+    'afib': 'EKG: Fibrilasi Atrium — Irama irreguler, P hilang',
+    'pmitrale': 'EKG: P Mitrale (P bifid) pada Stenosis Mitral',
+    'pericarditis': 'EKG: Perikarditis — ST Elevasi Difus + PR Depresi'
+  };
+  ctx.fillText(labels[type] || 'EKG: Irama Sinus Normal', 20, 18);
+  
+  ctx.font = '10px sans-serif';
+  if (type === 'stemi') {
+    ctx.fillStyle = '#c0392b';
+    ctx.fillText('↑ ST elevasi', 20, 58);
+  } else if (type === 'lvh') {
+    ctx.fillStyle = '#8e44ad';
+    ctx.fillText('LVH + Strain pattern', 20, 58);
+  } else if (type === 'afib') {
+    ctx.fillStyle = '#8e44ad';
+    ctx.fillText('Irama irreguler | P tidak tampak | f waves', 20, 58);
+  } else if (type === 'pericarditis') {
+    ctx.fillStyle = '#c0392b';
+    ctx.fillText('ST elevasi difus concave upward + PR depresi', 20, 58);
+  } else if (type === 'pmitrale') {
+    ctx.fillStyle = '#8e44ad';
+    ctx.fillText('P mitrale (bifid) ↓ | LVH | Gelombang Q (infark lama)', 20, 58);
+  } else if (type === 'chf') {
+    ctx.fillStyle = '#c0392b';
+    ctx.fillText('LVH + Q patologis anterior + ST-T changes', 20, 58);
+  }
+}
+
+// Start
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

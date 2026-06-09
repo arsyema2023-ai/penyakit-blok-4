@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSCE Flipbook — Blok Mata | SKDI 4A</title>
+<style>
+:root{--primary:#2c3e50;--primary-dark:#1a252f;--secondary:#7f8c8d;--accent:#3498db;--bg:#f5f6fa;--card:#fff;--text:#2c3e50;--text-light:#95a5a6;--radius:16px;--font:'Segoe UI',system-ui,sans-serif}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:260px;min-width:260px;background:var(--primary);color:#fff;overflow-y:auto;padding:16px 0}
+.sidebar h1{font-size:1rem;padding:0 16px 12px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:8px}
+.sidebar .subtitle{padding:6px 16px 10px;font-size:0.7rem;color:rgba(255,255,255,0.5)}
+.disease-list{list-style:none;padding:4px 0}
+.disease-list li{padding:8px 16px 8px 20px;cursor:pointer;font-size:0.82rem;border-left:3px solid transparent;transition:all .3s;display:flex;align-items:center;gap:8px}
+.disease-list li:hover{background:rgba(255,255,255,0.06)}
+.disease-list li.active{background:rgba(255,255,255,0.1);border-left-color:var(--accent);font-weight:600}
+.disease-list li .num{font-size:0.65rem;color:rgba(255,255,255,0.4);min-width:20px;font-weight:700}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--card);padding:10px 20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--accent)}
+.topbar h2{font-size:1rem;color:var(--accent)}.topbar .badge{background:var(--accent);color:#fff;padding:2px 10px;border-radius:20px;font-size:0.7rem}
+.topbar .page-info{font-size:0.82rem;color:var(--text-light)}
+.flipbook-wrapper{flex:1;display:flex;align-items:center;justify-content:center;padding:16px;overflow:hidden}
+.flipbook{width:100%;max-width:960px;height:100%;max-height:84vh;position:relative;perspective:1600px}
+.page{position:absolute;inset:0;background:var(--card);border-radius:var(--radius);box-shadow:0 8px 32px rgba(0,0,0,0.1);padding:28px 32px;overflow-y:auto;display:none;transition:transform .5s ease,opacity .4s ease}
+.page.active{display:block;z-index:10}
+.page.flip-out{animation:flipOut .5s ease forwards}.page.flip-in{animation:flipIn .5s ease forwards}
+@keyframes flipOut{0%{transform:rotateY(0);opacity:1}100%{transform:rotateY(-90deg);opacity:0}}
+@keyframes flipIn{0%{transform:rotateY(90deg);opacity:0}100%{transform:rotateY(0);opacity:1}}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--accent)}
+.page-header .step{font-size:0.7rem;color:#fff;background:var(--accent);padding:2px 10px;border-radius:12px;font-weight:600}
+.page-header .ptitle{font-size:1.1rem;font-weight:700;color:var(--primary)}
+.section{margin-bottom:12px}.section h3{font-size:0.9rem;color:var(--accent);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.section p,.section li{font-size:0.85rem;line-height:1.65;color:var(--text)}
+.section ul{padding-left:18px}.section ul li{margin-bottom:3px}
+.media-box{background:#f8f9fa;border-radius:10px;padding:12px;margin:10px 0;border:1px solid #e9ecef;text-align:center}
+.media-box table{width:100%;border-collapse:collapse;font-size:0.82rem}
+.media-box th{background:var(--primary);color:#fff;padding:6px;text-align:left}
+.media-box td{padding:6px;border-bottom:1px solid #eee}
+.media-box .caption{font-size:0.72rem;color:var(--text-light);margin-top:6px;font-style:italic}
+.nav-buttons{display:flex;justify-content:space-between;align-items:center;padding:10px 20px;background:var(--card);border-top:1px solid #eee}
+.nav-buttons button{padding:8px 20px;border:none;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:6px}
+.btn-prev{background:#ecf0f1;color:var(--text)}.btn-prev:hover{background:#dfe4e6}
+.btn-next{background:var(--accent);color:#fff}.btn-next:hover{background:var(--primary-dark)}
+.btn-next:disabled,.btn-prev:disabled{opacity:.4;cursor:not-allowed}
+.btn-reset{background:transparent;color:var(--text-light);border:1px solid #ddd!important}
+.prescription-box{background:#fffef5;border:2px solid #e8dcc8;border-radius:10px;padding:16px;font-family:'Courier New',monospace;margin:10px 0;font-size:0.82rem}
+.prescription-box .rx{font-size:1.1rem;font-weight:700;color:var(--primary)}
+.prescription-box .rx-item{padding:4px 0;border-bottom:1px dotted #eee;display:flex;gap:10px}
+.prescription-box .rx-item .r{min-width:25px;color:var(--accent);font-weight:700}
+.dd-list{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
+.dd-item{background:#f8f9fa;padding:8px 12px;border-radius:8px;border-left:4px solid #ddd;font-size:0.82rem;cursor:pointer;transition:all .3s}
+.dd-item:hover{border-left-color:var(--accent);background:#eaf2fa}
+.dd-item.revealed{border-left-color:var(--accent);background:#eaf2fa}
+.dd-item .dd-title{font-weight:600}.dd-item .dd-desc{font-size:0.75rem;color:var(--text-light)}
+.eye-svg{max-width:200px;margin:0 auto;display:block}
+@media(max-width:768px){.sidebar{width:50px;min-width:50px}.sidebar h1 span,.sidebar .subtitle,.disease-list li .name{display:none}.disease-list li{padding:12px;justify-content:center}.page{padding:16px}.dd-list{grid-template-columns:1fr}}
+.page::-webkit-scrollbar{width:5px}.page::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+<nav class="sidebar">
+<h1>👁️ <span>Blok Mata</span></h1>
+<div class="subtitle"><span>15 Flipbook • SKDI 4A • OSCE</span></div>
+<ul class="disease-list" id="diseaseList"></ul>
+</nav>
+<div class="main">
+<div class="topbar">
+<div style="display:flex;align-items:center;gap:10px">
+<h2 id="flipTitle">Konjungtivitis</h2><span class="badge" id="flipBadge">1/15</span>
+</div>
+<div class="page-info">Hlm <span id="pageNum">1</span>/<span id="pageTotal">12</span></div>
+</div>
+<div class="flipbook-wrapper"><div class="flipbook" id="flipbook"></div></div>
+<div class="nav-buttons">
+<div><button class="btn-reset" onclick="goToDisease(currentDisease)">📖 Awal</button></div>
+<div style="display:flex;gap:8px">
+<button class="btn-prev" id="prevBtn" onclick="prevPage()">◀ Sebelumnya</button>
+<button class="btn-next" id="nextBtn" onclick="nextPage()">Selanjutnya ▶</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+const DISEASES = [
+  // 1. KONJUNGTIVITIS
+  {
+    id:0, name:"Konjungtivitis",
+    pages:[
+      {title:"Skenario Kasus", step:"IPM-1", content:`
+        <div class="section"><h3>🏥 Skenario</h3>
+        <p>Seorang anak laki-laki, 7 tahun, dibawa ibunya ke Puskesmas dengan keluhan mata merah sejak 2 hari. Mata terasa perih seperti kemasukan pasir (sensasi benda asing), gatal, dan banyak kotoran mata (belek) berwarna kuning kehijauan. Keluhan dimulai pada mata kanan, lalu dalam 1 hari mata kiri ikut merah. Teman sekelasnya juga ada yang sakit mata. Anak tidak demam, penglihatan tidak kabur.</p></div>
+        <div class="media-box"><svg viewBox="0 0 380 110"><rect width="380" height="110" fill="#f0f8ff" rx="10"/><text x="190" y="20" text-anchor="middle" fill="#2c3e50" font-weight="700" font-size="13">ANATOMI MATA & INFEKSI KONJUNGTIVA</text><circle cx="80" cy="60" r="32" fill="none" stroke="#2c3e50" stroke-width="1.5"/><circle cx="80" cy="60" r="12" fill="#2c3e50" opacity="0.2"/><circle cx="80" cy="60" r="5" fill="#2c3e50" opacity="0.5"/><text x="80" y="102" text-anchor="middle" fill="#666" font-size="9">Konjungtiva (merah)</text><rect x="140" y="40" width="220" height="50" fill="#fff" stroke="#2c3e50" rx="4"/><text x="250" y="56" text-anchor="middle" fill="#2c3e50" font-weight="600" font-size="10">KONJUNGTIVITIS</text><text x="250" y="70" text-anchor="middle" fill="#555" font-size="9">Bakteri/Virus/Alergi/Kimia</text><text x="250" y="83" text-anchor="middle" fill="#555" font-size="9">Injeksi konjungtiva + Sekret</text></svg><div class="caption">Gambar 1.1 — Anatomi mata: peradangan konjungtiva bulbi dan tarsal</div></div>`
+      },
+      {title:"Gejala", step:"IPM-2", content:`
+        <div class="section"><h3>🔍 Gejala Klinis</h3>
+        <ul><li><strong>Mata merah (injeksi konjungtiva):</strong> Kemerahan difus, semakin merah ke forniks</li><li><strong>Sekret:</strong> Purulen/kuning-hijau (bakteri) atau serous/watery (virus/alergi)</li><li>Sensasi benda asing (konstriksi/berpasir) — <strong>bukan nyeri tajam</strong></li><li>Gatal — dominan pada konjungtivitis alergi</li><li>Edema kelopak (blefarospasme ringan)</li><li>Visus tidak terganggu (pandangan normal) — bedakan dengan keratitis/uveitis!</li><li>Krusta pada pagi hari — susah membuka mata</li></ul></div>`
+      },
+      {title:"TTV & Pemeriksaan Fisik", step:"IPM-3-5", content:`
+        <div class="section"><h3>🩺 Vital Signs & Pemeriksaan Head-to-Toe</h3>
+        <div class="media-box"><table><tr style="background:#2c3e50;color:#fff"><th>Parameter</th><th>Nilai</th></tr><tr><td>TD</td><td>110/70 mmHg</td></tr><tr><td>Nadi</td><td>88 x/mnt</td></tr><tr><td>Suhu</td><td>37.0°C (afebris)</td></tr></table></div>
+        <ul><li><strong>Mata:</strong> Injeksi konjungtiva difus bilateral, sekret purulen (+), krusta pada bulu mata, kornea jernih, bilik anterior jernih, pupil bulat reflek (+), visus 6/6 normal</li><li><strong>Palpasi:</strong> Nyeri tekan globa (-), KLN preaurikuler membesar (bakteri)</li><li>Fluorescein test: Negatif (tidak ada ulkus kornea)</li><li>Eversi kelopak: Papil dan folikel pada konjungtiva tarsal</li></ul></div>`
+      },
+      {title:"Pemeriksaan Penunjang & Diagnosis", step:"IPM-6-8", content:`
+        <div class="section"><h3>🔬 Pemeriksaan Penunjang</h3>
+        <ul><li>Umumnya diagnosis klinis — tidak perlu pemeriksaan rutin</li><li><strong>Sediaan langsung/gram:</strong> Kokus gram (+) berantai (Streptococcus) atau berkelompok (Staphylococcus)</li><li><strong>Kultur swab konjungtiva:</strong> Jika tidak membaik dengan terapi empiris 5 hari</li></ul>
+        <div class="dd-list" id="ddList0"></div>
+        <div class="media-box" style="background:#eaf2fa;border-color:#3498db;margin-top:10px"><h4 style="color:#2980b9">Diagnosis Kerja: Konjungtivitis Bakteri Akut Bilateral</h4><p>ICD-10: H10.0 • Sekret purulen • Injeksi konjungtiva • Visus normal • Tanpa sakit</p></div>
+        <p style="font-size:0.8rem;color:#666;margin-top:8px"><strong>Beda dengan keratitis:</strong> Keratitis = nyeri + fotofobia + visus turun + fluorescein (+)</p></div>`
+      },
+      {title:"Tatalaksana", step:"IPM-9-12", content:`
+        <div class="section"><h3>💊 Tatalaksana Farmakologis</h3>
+        <ul><li><strong>Antibiotik topikal:</strong> Kloramfenikol 0.5% tetes 1-2 gtt tiap 2-4 jam ATAU Gentamisin 0.3% tetes ATAU Tobramisin 0.3% tetes — selama 5-7 hari</li><li><strong>Jika berat:</strong> Ofloksasin 0.3% tetes 4-6x/hari</li><li>Kompres hangat untuk membersihkan krusta</li><li>Tidak perlu antibiotik sistemik (kecuali ada komplikasi)</li></ul></div>
+        <div class="prescription-box"><div class="rx">R/ Resep</div><div class="rx-item"><span class="r">R/</span><span>Kloramfenikol 0.5% tetes mata No.I<br>S 3-4 dd gtt I OD-OS</span></div><div class="rx-footer">Pro: An. A (7 th) — 7 hari — Paraf:</div></div>
+        <div class="section"><h3>📢 Edukasi</h3>
+        <ul><li>Cuci tangan sebelum & sesudah menyentuh mata</li><li>Jangan berbagi handuk, bantal, atau kosmetik mata</li><li>Cuti sekolah selama 3 hari (masa menular tinggi)</li><li>Buang tisu/kassa bekas membersihkan mata</li><li>Kontrol 3 hari jika tidak membaik</li></ul></div>`
+      }
+    ]
+  },
+  // 2. KATARAK
+  {
+    id:1, name:"Katarak",
+    pages:[
+      {title:"Skenario Kasus", step:"IPM-1", content:`
+        <div class="section"><h3>🏥 Skenario</h3>
+        <p>Seorang perempuan, 68 tahun, datang ke Puskesmas dengan keluhan penglihatan buram seperti tertutup kabut (berkabut) sejak 1 tahun terakhir, memberat dalam 6 bulan. Pasien merasa silau saat mengemudi malam hari (glare) dan sering mengganti ukuran kacamata tanpa hasil. Pasien juga kesulitan membaca koran atau menjahit. Riwayat: DM tipe 2 sejak 10 tahun (kontrol buruk), hipertensi. Tidak ada riwayat trauma atau pemakaian steroid jangka panjang.</p></div>
+        <div class="media-box"><svg viewBox="0 0 380 90"><rect width="380" height="90" fill="#f0f8ff" rx="10"/><text x="190" y="18" text-anchor="middle" fill="#2c3e50" font-weight="700" font-size="12">KATARAK — OPASIFIKASI LENSA</text><circle cx="80" cy="48" r="25" fill="none" stroke="#555" stroke-width="1"/><circle cx="80" cy="48" r="10" fill="#bbb" opacity="0.5"/><text x="80" y="82" text-anchor="middle" fill="#666" font-size="9">Lensa keruh (katarak)</text><rect x="130" y="25" width="230" height="50" fill="#fff" stroke="#2c3e50" rx="4"/><text x="245" y="42" text-anchor="middle" fill="#2c3e50" font-weight="600" font-size="9">Faktor Risiko:</text><text x="245" y="56" text-anchor="middle" fill="#555" font-size="8">Usia • DM • Merokok • Steroid • Trauma • Radiasi UV</text><text x="245" y="68" text-anchor="middle" fill="#555" font-size="8">DM → ↑ sorbitol → edema lensa → katarak matur dini</text></svg><div class="caption">Gambar 2.1 — Lensa mata keruh akibat opasifikasi protein lensa (katarak senilis)</div></div>`
+      },
+      {title:"Gejala", step:"IPM-2", content:`
+        <div class="section"><h3>🔍 Gejala Klinis</h3>
+        <ul><li><strong>Penglihatan berkabut (hazy/blurred):</strong> Progresif lambat — "seperti melihat dari balik kaca buram"</li><li><strong>Glare/silau:</strong> Sangat sensitif terhadap cahaya terang/lampu kendaraan malam</li><li>Diplopia monokular (penglihatan ganda 1 mata)</li><li>Perubahan refraksi cepat — "myopic shift" (pasien jadi lebih rabun dekat)</li><li>Kesulitan membaca, menjahit, mengemudi malam</li><li>Warna terlihat pudar/kusam (desaturasi warna)</li><li>Pada stadium lanjut: pupil tampak putih-keabuan (katarak matur)</li></ul></div>`
+      },
+      {title:"TTV & Pemeriksaan Fisik", step:"IPM-3-5", content:`
+        <div class="section"><h3>🩺 Vital Signs & Pemeriksaan Mata</h3>
+        <div class="media-box"><table><tr style="background:#2c3e50;color:#fff"><th>Pemeriksaan</th><th>Hasil</th></tr><tr><td>Visus OD</td><td style="color:#c0392b">6/24 (tidak dikoreksi dengan pin hole)</td></tr><tr><td>Visus OS</td><td style="color:#c0392b">6/30</td></tr><tr><td>Shadow test</td><td>Positif (katarak imatur)</td></tr></table></div>
+        <ul><li><strong>Pemeriksaan fokal:</strong> Kornea jernih, bilik anterior normal, pupil reflek (+). Pada segmen anterior: lensa tampak keruh putih/keabu-abuan (nuklear sklerosis)</li><li><strong>Funduskopi:</strong> Reflek fundus redup, sulit melihat retina (terhalang lensa keruh)</li><li>Tidak ada tanda glaukoma (TON normal 12-20), tidak ada tanda uveitis</li><li>Tes pencahayaan: Silau (+) — glare test</li></ul></div>`
+      },
+      {title:"Penunjang & Diagnosis", step:"IPM-6-8", content:`
+        <div class="section"><h3>🔬 Pemeriksaan & Diagnosis</h3>
+        <ul><li><strong>Pemeriksaan dengan slit-lamp:</strong> Opasitas lensa nuklear/kortikal/posterior subkapsular</li><li><strong>Klasifikasi:</strong> Nuklear (inti), Kortikal (perifer bercak), Subkapsular posterior (sentral — silau paling berat)</li><li><strong>Eksklusi penyebab:</strong> Cek GDP (eksklusi DM), riwayat steroid, riwayat trauma, uveitis</li></ul>
+        <div class="dd-list" id="ddList1"></div>
+        <div class="media-box" style="background:#eaf2fa;border-color:#3498db;margin-top:10px"><h4 style="color:#2980b9">Diagnosis Kerja: Katarak Senilis Imatur Bilateral</h4><p>ICD-10: H25.9 • Visus 6/24 • Opasitas nuklear + kortikal • DM komorbid</p></div>
+        <p style="font-size:0.8rem;color:#666;margin-top:6px">Katarak matur = lensa putih total (visus &lt;1/300). Katarak hipermatur = lensa menyusut, kapsul berkerut.</p></div>`
+      },
+      {title:"Tatalaksana & Edukasi", step:"IPM-9-12", content:`
+        <div class="section"><h3>💊 Tatalaksana</h3>
+        <ul><li><strong>Rujuk ke Spesialis Mata:</strong> Untuk operasi ekstraksi katarak (SICS atau Fakoemulsifikasi) + IOL</li><li><strong>Kontrol DM:</strong> Target HbA1c &lt;7% sebelum operasi</li><li><strong>Sementara menunggu operasi:</strong> Kacamata anti-silau, pencahayaan yang baik, kaca pembesar</li><li><strong>Tidak ada obat tetes yang dapat menyembuhkan katarak</strong> — hanya operasi!</li><li><strong>Indikasi operasi:</strong> Visus &lt;6/12 yang mengganggu aktivitas, glare berat, atau katarak matur</li></ul></div>
+        <div class="section"><h3>📢 Edukasi Pasien</h3>
+        <ul><li>Operasi katarak adalah prosedur rutin dan aman — jangan takut</li><li>Kontrol DM ketat memperlambat progresivitas</li><li>Gunakan kacamata hitam saat siang (kurangi silau)</li><li>Jangan menunggu sampai "matang" — operasi lebih baik dilakukan lebih awal</li><li>Setelah operasi: tetes antibiotik + steroid, hindari tekan mata, kontrol rutin</li><li>Tanda bahaya pasca-op: nyeri hebat, visus turun drastis, merah berat → segera ke mata</li></ul></div>`
+      }
+    ]
+  },
+  // 3. GLAUKOMA PRIMER SUDUT TERBUKA
+  {
+    id:2, name:"Glaukoma Primer",
+    pages:[
+      {title:"Skenario Kasus", step:"IPM-1", content:`
+        <div class="section"><h3>🏥 Skenario</h3>
+        <p>Seorang laki-laki, 60 tahun, datang untuk medical check-up dan secara rutin diperiksa visus. Pasien tidak ada keluhan berarti. Namun saat pemeriksaan funduskopi, ditemukan cup-to-disc ratio (CDR) 0.6 pada kedua mata. Pasien diminta kontrol lebih lanjut. Saat ditanya, pasien mengaku kadang melihat lingkaran warna-warni di sekitar lampu (halos) dan agak kesulitan melihat di tempat redup. Riwayat: hipertensi, DM, dan riwayat keluarga (ayah buta karena glaukoma). Visus masih 6/6.</p></div>
+        <div class="media-box" style="background:#fdf2e9;border-color:#e67e22"><p style="font-weight:700;color:#e67e22;font-size:0.9rem">⚠️ GLAUKOMA = "Pencuri penglihatan diam-diam" — biasanya asimtomatik sampai stadium lanjut!</p></div>
+        <div class="media-box"><svg viewBox="0 0 380 80"><rect width="380" height="80" fill="#f0f8ff" rx="10"/><text x="190" y="18" text-anchor="middle" fill="#2c3e50" font-weight="700" font-size="12">GLAUKOMA — NEUROPATI OPTIK PROGRESIF</text><text x="190" y="36" text-anchor="middle" fill="#555" font-size="9">Peningkatan TON → Kerusakan N. Optikus → Defek Lapang Pandang → Kebutaan</text><text x="190" y="54" text-anchor="middle" fill="#555" font-size="9">CDR membesar • Atrofi saraf optik • Iris neovaskularisasi</text><text x="190" y="72" text-anchor="middle" fill="#999" font-size="9">Glaukoma: Terbuka (kronik) vs Tertutup (akut, darurat)</text></svg></div>`
+      },
+      {title:"Gejala", step:"IPM-2", content:`
+        <div class="section"><h3>🔍 Gejala Klinis — Glaukoma Sudut Terbuka</h3>
+        <ul><li><strong>GEJALA MINIMAL pada awal — inilah bahayanya!</strong></li><li>Peripheral vision loss (kehilangan lapang pandang perifer) — tidak disadari pasien</li><li>Kesulitan melihat di tempat redup (night blindness)</li><li>Halos (lingkaran warna-warni) saat melihat lampu</li><li>Rasa tidak nyaman di mata ringan</li><li>Stadium lanjut: <strong>tunnel vision</strong> — hanya bisa melihat lurus ke depan</li><li>Kebutaan permanen</li></ul>
+        <h3 style="margin-top:10px">🔴 Glaukoma Sudut Tertutup (Darurat!)</h3>
+        <ul><li>Nyeri mata berat, sakit kepala, mual muntah</li><li>Mata merah, kornea edema (mendung), pupil sedang-lebar (mid-dilated)</li><li>Visus turun drastis, melihat halo pelangi</li><li>TON sangat tinggi (&gt;40-60 mmHg)</li></ul></div>`
+      },
+      {title:"TTV & Pemeriksaan", step:"IPM-3-5", content:`
+        <div class="section"><h3>🩺 Vital Signs & Pemeriksaan Fisik Mata</h3>
+        <div class="media-box"><table><tr style="background:#2c3e50;color:#fff"><th>Pemeriksaan</th><th>Hasil</th></tr><tr><td>Visus</td><td>6/6 (masih baik)</td></tr><tr><td>TON (Palpasi/Schiotz/Tonometer)</td><td style="color:#c0392b">26 mmHg (normal 12-20)</td></tr><tr><td>CDR (Cup-Disc Ratio)</td><td style="color:#c0392b">0.6 OD, 0.6 OS</td></tr><tr><td>Sudut bilik mata</td><td>Terbuka (gonioskopi)</td></tr></table></div>
+        <ul><li><strong>Funduskopi:</strong> Papil optik cupping (lekuk) dalam, CDR &gt;0.5, rim neuroretinal menipis, nasal shifting pembuluh darah, perdarahan splinter pada disc</li><li><strong>Lapang pandang:</strong> Defek perifer atau arkuata (scotoma Bjerrum) — perimetri</li><li><strong>Pemeriksaan kornea:</strong> Jernih (tidak edema) — berbeda dengan glaukoma akut</li></ul></div>`
+      },
+      {title:"Penunjang & Diagnosis", step:"IPM-6-8", content:`
+        <div class="section"><h3>🔬 Pemeriksaan Penunjang</h3>
+        <ul><li><strong>Tonometri:</strong> TON &gt;21 mmHg (tanpa terapi) — faktor risiko utama</li><li><strong>Gonioskopi:</strong> Sudut terbuka — lihat struktur bilik anterior (trabekula)</li><li><strong>Perimetri (Humphrey):</strong> Defek lapang pandang arkuata, nasal step, paracentral scotoma</li><li><strong>OCT (Optical Coherence Tomography):</strong> Penipisan RNFL (Retinal Nerve Fiber Layer) — tanda progresi</li><li><strong>Pachimetri:</strong> Ketebalan kornea sentral (mempengaruhi akurasi TON)</li></ul>
+        <div class="dd-list" id="ddList2"></div>
+        <div class="media-box" style="background:#eaf2fa;border-color:#3498db;margin-top:10px"><h4 style="color:#2980b9">Diagnosis Kerja: Glaukoma Primer Sudut Terbuka (POAG) Bilateral</h4><p>ICD-10: H40.1 • TON 26 mmHg • CDR 0.6 • Lapang pandang defek • Riwayat keluarga (+) • Usia 60 th</p></div></div>`
+      },
+      {title:"Tatalaksana & Edukasi", step:"IPM-9-12", content:`
+        <div class="section"><h3>💊 Tatalaksana</h3>
+        <ul><li><strong>RUJUK ke Spesialis Mata!</strong> — Glaukoma adalah kondisi seumur hidup</li><li><strong>Obat tetes penurun TON (lini pertama):</strong> Analog prostaglandin (Latanoprost 0.005% 1x/malam) ATAU β-blocker (Timolol 0.5% 2x/hari)</li><li><strong>Obat oral (jika perlu):</strong> Asetazolamid 250-500 mg/hari — penghambat karbonat anhidrase</li><li><strong>Laser trabekuloplasti (ALT/SLT)</strong> — pada POAG</li><li><strong>Operasi:</strong> Trabekulektomi — jika maksimal obat TON &gt;21 + progresi lapang pandang</li><li>Target TON individual: Disesuaikan (umumnya &lt;18 mmHg)</li></ul></div>
+        <div class="section"><h3>📢 Edukasi Pasien</h3>
+        <ul><li><strong>Glaukoma tidak bisa disembuhkan — hanya dikontrol!</strong> Obat tetes harus rutin seumur hidup</li><li>Kontrol rutin: TON, lapang pandang, OCT setiap 3-6 bulan</li><li>Skrining keluarga (saudara kandung, anak) — risiko 4-9x lipat</li><li>Olahraga ringan-sedang baik, hindari headstand/inverted pose yoga (↑ TON)</li><li>Jika kehilangan penglihatan, rs. rehabilitasi low vision</li><li>Kepatuhan obat tetes sangat penting — bawa ke mana pun</li></ul></div>`
+      }
+    ]
+  },
+  // 4. HORDEOLUM
+  {id:3, name:"Hordeolum", pages:[
+    {title:"Skenario Kasus", step:"IPM-1", content:'<div class="section"><h3>🏥 Skenario</h3><p>Seorang mahasiswa, 19 tahun, datang dengan keluhan benjolan merah pada kelopak mata kanan atas sejak 3 hari, terasa nyeri dan bengkak. Pasien sering mengucek mata karena debu. Awalnya hanya kemerahan, lalu membentuk benjolan seperti jerawat. Pasien demam (-), visus normal.</p></div>'},
+    {title:"Gejala & Pemeriksaan", step:"IPM-2-5", content:'<div class="section"><h3>🔍 Gejala & Pemeriksaan</h3><ul><li><strong>Benjolan merah, nyeri tekan (+)</strong> pada kelopak mata</li><li>Edema kelopak lokal, hangat, fluktuatif (+)</li><li>Biasanya self-limiting 5-7 hari, bisa pecah spontan</li><li><strong>Hordeolum eksternum:</strong> Infeksi kelenjar Zeiss/Moll (di pangkal bulu mata)</li><li><strong>Hordeolum internum:</strong> Infeksi kelenjar Meibom (di dalam tarsal)</li></ul><div class="media-box"><table><tr style="background:#2c3e50;color:#fff"><th>Vs</th><th>Hordeolum</th><th>Khalazion</th></tr><tr><td>Nyeri</td><td style="color:#c0392b">(+)</td><td>(-)</td></tr><tr><td>Inflamasi</td><td style="color:#c0392b">Akut</td><td>Kronis</td></tr></table></div></div>'},
+    {title:"Diagnosis & Tatalaksana", step:"IPM-6-12", content:'<div class="section"><h3>✅ Diagnosis & Tatalaksana</h3><div class="media-box" style="background:#eaf2fa;border-color:#3498db"><h4 style="color:#2980b9">Diagnosis: Hordeolum Eksternum Palpebra Superior Dekstra</h4><p>ICD-10: H00.0</p></div><ul><li><strong>Kompres hangat</strong> 4-6x/hari 10-15 menit</li><li><strong>Antibiotik topikal:</strong> Kloramfenikol salep mata 0.5% 3-4x/hari</li><li>Jangan memencet! risiko penyebaran infeksi</li><li>Jika abses → insisi drainase oleh dokter mata</li></ul><div class="prescription-box"><div class="rx">R/ Resep</div><div class="rx-item"><span class="r">R/</span><span>Kloramfenikol salep 0.5% No.I<br>S 3 dd oles palpebra OD</span></div></div><p style="font-size:0.8rem;color:#666">Edukasi: Jangan mengucek mata, cuci tangan, kompres hangat rutin.</p></div>'}
+  ]},
+  // 5. BLEFARITIS
+  {id:4, name:"Blefaritis", pages:[
+    {title:"Skenario Kasus", step:"IPM-1", content:'<div class="section"><h3>🏥 Skenario</h3><p>Seorang perempuan, 35 tahun, datang dengan keluhan kelopak mata gatal, merah, dan bersisik sejak 1 bulan. Bangun tidur bulu mata saling menempel (berkrusta). Mata terasa perih dan cepat lelah. Riwayat: sering menggunakan makeup mata, pemakaian lensa kontak jangka panjang, dan memiliki riwayat dermatitis seboroik pada kulit kepala.</p></div>'},
+    {title:"Gejala & Pemeriksaan", step:"IPM-2-5", content:'<div class="section"><h3>🔍 Gejala & Pemeriksaan Fisik</h3><ul><li>Gatal, perih, sensasi terbakar pada kelopak</li><li>Mata merah, berair (epifora), sering muncul timbilan rekuren</li><li>Krusta pada bulu mata (collarettes) — menempel seperti sisik ketombe</li><li>Pangkal bulu mata eritematosa, edema, kadang ulkus kecil</li><li><strong>Anterior blefaritis:</strong> Stafilokokal (ulkus, krusta) vs Seboroik (sisik berminyak)</li><li><strong>Posterior blefaritis:</strong> Disfungsi kelenjar Meibom (MGD)</li></ul></div>'},
+    {title:"Diagnosis & Tatalaksana", step:"IPM-6-12", content:'<div class="section"><h3>✅ Diagnosis & Tatalaksana</h3><div class="media-box" style="background:#eaf2fa;border-color:#3498db"><h4 style="color:#2980b9">Diagnosis: Blefaritis Anterior & Posterior Bilateral</h4><p>ICD-10: H01.0</p></div><ul><li><strong>Higiene kelopak:</strong> Kompres hangat 10 menit + pijat kelopak + gosok pangkal bulu mata (lidocaine-free baby shampoo)</li><li><strong>Antibiotik topikal:</strong> Salep Kloramfenikol/Bacitracin 3x/hari pada pangkal bulu mata</li><li><strong>Artificial tears:</strong> Tetes mata air buatan 3-4x/hari</li><li><strong>Jika MGD:</strong> Suplementasi Omega-3, azitromisin topikal</li><li>Kronis — butuh perawatan jangka panjang</li></ul></div>'}
+  ]},
+  // 6. PERDARAHAN SUBKONJUNGTIVA
+  {id:5, name:"Perdarahan Subkonjungtiva", pages:[
+    {title:"Skenario Kasus", step:"IPM-1", content:'<div class="section"><h3>🏥 Skenario</h3><p>Seorang laki-laki, 45 tahun, datang dengan keluhan mata merah mendadak pada mata kanan setelah batuk keras 2 hari lalu. Tidak ada rasa sakit, gatal, atau perubahan visus. Pasien khawatir karena merahnya tidak hilang. Riwayat: hipertensi terkontrol. Tidak ada trauma atau demam.</p></div>'},
+    {title:"Gejala & Pemeriksaan", step:"IPM-2-5", content:'<div class="section"><h3>🔍 Gejala & Pemeriksaan Fisik</h3><ul><li>Bercak merah terang pada sklera (konjungtiva bulbi)</li><li>Batas tegas — darah di bawah konjungtiva — merah difus tapi fokal</li><li>Tidak ada injeksi perikornea, kornea jernih</li><li>Tidak nyeri, tidak fotofobia, visus normal</li><li>Berbeda dengan konjungtivitis: merah difus dengan sekret (+)</li><li>Biasanya hilang sendiri 1-2 minggu</li></ul></div>'},
+    {title:"Diagnosis & Tatalaksana", step:"IPM-6-12", content:'<div class="section"><h3>✅ Diagnosis & Tatalaksana</h3><div class="media-box" style="background:#eaf2fa;border-color:#3498db"><h4 style="color:#2980b9">Diagnosis: Perdarahan Subkonjungtiva (OD)</h4><p>ICD-10: H11.3</p></div><ul><li>Kondisi <strong>benigna — self-limiting</strong> dalam 10-14 hari</li><li>Tidak perlu obat tetes — hanya observasi</li><li>Cek TD untuk skrining hipertensi</li><li>Jika rekuren: skrining koagulasi (PT/aPTT, trombosit)</li><li>Edukasi: Jangan mengucek, warna akan berubah dari merah → kuning → hilang</li><li>Hindari aspirin jika tidak perlu (risiko perdarahan)</li></ul><div class="media-box" style="background:#fdf2e9"><span style="color:#e67e22">⚠️ Rujuk spesialis mata jika: &gt;3 minggu tidak hilang, rekuren sering, atau disertai perdarahan tempat lain</span></div></div>'}
+  ]},
+  // 7. BENDA ASING KONJUNGTIVA
+  {id:6, name:"Benda Asing Konjungtiva", pages:[
+    {title:"Skenario Kasus", step:"IPM-1", content:'<div class="section"><h3>🏥 Skenario</h3><p>Seorang tukang las, 30 tahun, datang dengan keluhan mata kiri terasa seperti ada pasir sejak 2 jam yang lalu saat bekerja tanpa kacamata pelindung. Mata merah, berair, perih, dan sulit dibuka (blefarospasme). Visus normal. Pasien sudah mencoba mengucek tapi tidak keluar.</p></div>'},
+    {title:"Gejala & Pemeriksaan", step:"IPM-2-5", content:'<div class="section"><h3>🔍 Gejala & Pemeriksaan Fisik</h3><ul><li>Sensasi benda asing (foreign body sensation) yang intens</li><li>Mata merah banyak air (epifora) + fotofobia ringan</li><li>Blefarospasme (sulit buka mata) — refleks proteksi</li><li><strong>Pemeriksaan:</strong> Eversi kelopak atas — cari benda asing di konjungtiva tarsal atau forniks</li><li>Fluorescein test: (-) jika hanya di konjungtiva, (+) jika sudah lecet kornea (abrasi kornea)</li><li>Jangan lupa periksa domus okuli dan forniks inferior</li></ul></div>'},
+    {title:"Diagnosis & Tatalaksana", step:"IPM-6-12", content:'<div class="section"><h3>✅ Diagnosis & Tatalaksana</h3><div class="media-box" style="background:#eaf2fa;border-color:#3498db"><h4 style="color:#2980b9">Diagnosis: Benda Asing Konjungtiva OS — partikel logam</h4><p>ICD-10: T15.0</p></div><ul><li><strong>Irigasi dengan NaCl 0.9% steril</strong> (20-30 mL) — seringkali cukup</li><li>Jika tidak keluar: <strong>angkat dengan kapas lidi steril (cotton bud)</strong> setelah tetes anestesi topikal (Pantokain/Tetrakain)</li><li>Jika melekat: gunakan spuit 5cc dengan jarum (konsulkan mata)</li><li>Setelah diangkat: tetes antibiotik (Kloramfenikol) + tutup mata 24 jam</li><li>Abrasi kornea: jika fluorescein (+) → antibiotik + patch</li><li>Rujuk jika gagal angkat, benda asing metal intraokular, atau perforasi</li><li>Penting: Gunakan kacamata pelindung saat bekerja</li></ul></div>'}
+  ]},
+  // 8. TRIAKISIS
+  {id:7, name:"Trikiasis", pages:[
+    {title:"Skenario Kasus", step:"IPM-1", content:'<div class="section"><h3>🏥 Skenario</h3><p>Seorang perempuan, 60 tahun, datang dengan keluhan mata kiri terasa mengganjal dan sering berair sejak 3 bulan. Pasien merasa ada bulu mata yang menusuk-nusuk mata. Pasien juga sering mengucek mata. Riwayat: trakoma saat kecil (belum diobati tuntas).</p></div>'},
+    {title:"Gejala & Tatalaksana", step:"IPM-2-12", content:'<div class="section"><h3>🔍 Gejala & Pemeriksaan</h3><ul><li>Sensasi benda asing kronis, mata merah, epifora</li><li>Fotofobia ringan (terusiknya kornea)</li><li><strong>Pemeriksaan:</strong> Bulu mata tumbuh ke arah posterior (ke arah bola mata), menggesek kornea/konjungtiva</li><li>Fluorescein (+): punctate keratitis atau abrasi kornea linier</li></ul><div class="media-box" style="background:#eaf2fa;border-color:#3498db;margin-top:8px"><h4 style="color:#2980b9">Diagnosis: Trikiasis Palpebra Inferior OS</h4><p>ICD-10: H02.0</p></div><h3>💊 Tatalaksana</h3><ul><li><strong>Epilasi (cabut bulu mata):</strong> dengan pinset — solusi sementara (tumbuh lagi 4-6 minggu)</li><li><strong>Elektrolisis / Diatermi:</strong> Destruksi folikel — lebih permanen</li><li><strong>Krioterapi atau operasi (tarso-plasti):</strong> Untuk kasus banyak/entropion</li><li>Antibiotik topikal jika ada abrasi kornea</li><li>Rujuk ke spesialis mata untuk tatalaksana definitif</li></ul></div>'}
+  ]},
+  // 9. MATA KERING
+  {id:8, name:"Mata Kering (KCS)", pages:[
+    {title:"Skenario Kasus", step:"IPM-1", content:'<div class="section"><h3>🏥 Skenario</h3><p>Seorang perempuan, 40 tahun, pekerja kantoran, datang dengan keluhan mata kering, perih, dan lelah sejak 3 bulan. Keluhan memberat saat bekerja di depan komputer (berkurangnya frekuensi berkedip). Pasien juga sering memakai lensa kontak dan berada di ruangan ber-AC. Visus normal, kadang penglihatan buram sementara (membaik setelah berkedip).</p></div>'},
+    {title:"Gejala & Pemeriksaan", step:"IPM-2-5", content:'<div class="section"><h3>🔍 Gejala Klinis</h3><ul><li>Mata kering, perih, sensasi berpasir (dryness, grittiness, burning)</li><li>Mata merah ringan, berair paradoksal (reflek hipersekresi)</li><li>Lensa kontak tidak nyaman</li><li>Penglihatan buram fluktuatif (memburuk setelah baca lama, membaik setelah berkedip)</li><li>Memberat: AC, kipas angin, layar komputer, kurang tidur</li><li><strong>Pemeriksaan:</strong> Schirmer test &lt;5 mm/5 menit, TBUT &lt;5 detik, fluorescein punctate keratitis (+)</li></ul></div>'},
+    {title:"Diagnosis & Tatalaksana", step:"IPM-6-12", content:'<div class="section"><h3>✅ Diagnosis & Tatalaksana</h3><div class="media-box" style="background:#eaf2fa;border-color:#3498db"><h4 style="color:#2980b9">Diagnosis: Keratoconjunctivitis Sicca (Mata Kering) Bilateral</h4><p>ICD-10: H04.1 • Schirmer &lt;5mm • TBUT &lt;5s</p></div><ul><li><strong>Artificial tears (air buatan):</strong> Tetes mata bebas pengawet 4-6x/hari (Hipromelosa/PVA/Karboksimetilselulosa)</li><li><strong>Gel/lubricant:</strong> Pada malam hari untuk perlindungan</li><li><strong>Modifikasi lingkungan:</strong> Gunakan humidifier, istirahatkan mata setiap 20 menit (20-20-20 rule)</li><li><strong>Exit lensa kontak</strong> sampai gejala membaik</li><li><strong>Jika inflamasi:</strong> Siklosporin 0.05% tetes (resep spesialis)</li><li>Punctal plugs untuk kasus berat</li></ul></div>'}
+  ]},
+  // 10. EPISKLERITIS
+  {id:9, name:"Episkleritis", pages:[
+    {title:"Skenario Kasus", step:"IPM-1", content:'<div class="section"><h3>🏥 Skenario</h3><p>Seorang perempuan, 28 tahun, datang dengan mata kanan merah segmental (sektoral) sejak 2 hari, tidak nyeri hanya sedikit tidak nyaman. Tidak ada sekret, visus normal. Pasien memiliki riwayat rheumatoid arthritis (rematik) dan sedang flare. Pasien khawatir karena matanya merah meski tidak sakit.</p></div>'},
+    {title:"Gejala & Tatalaksana", step:"IPM-2-12", content:'<div class="section"><h3>🔍 Gejala & Pemeriksaan</h3><ul><li>Merah sektoral (seperti bercak) pada episklera — pembuluh darah episklera melebar</li><li>Nyeri ringan sampai sedang (dull pain) atau hanya rasa tidak nyaman</li><li>Fenilefrin 2.5%: memucatkan kemerahan (beda dengan skleritis!)</li><li>Visus normal, tidak fotofobia, kornea jernih</li><li><strong>Beda dengan skleritis:</strong> Nyeri lebih berat, merah lebih dalam (keunguan), fenilefrin tidak memucatkan</li></ul><div class="media-box" style="background:#eaf2fa;border-color:#3498db;margin-top:8px"><h4 style="color:#2980b9">Diagnosis: Episkleritis Simpleks OD</h4><p>ICD-10: H15.1 • Sektoral • Fenilefrin (+)</p></div><h3>💊 Tatalaksana</h3><ul><li>Self-limiting 5-10 hari — sering membaik sendiri</li><li><strong>Artificial tears</strong> untuk kenyamanan</li><li><strong>NSAID topikal:</strong> Ketorolak 0.5% tetes 3-4x/hari (jika perlu)</li><li>Edukasi: kondisi ringan, bukan darurat. Tapi jika nyeri hebat atau visus turun → curigai skleritis</li><li>Jika berhubungan dengan penyakit autoimun (RA, SLE, dll) → kontrol penyakit sistemik</li></ul></div>'}
+  ]},
+  // 11-15. GANGGUAN REFRAKSI & LAINNYA
+  {id:10, name:"Miopia Ringan", pages:[
+    {title:"Skenario", step:"IPM-1", content:'<div class="section"><h3>🏥 Skenario</h3><p>Seorang mahasiswi, 20 tahun, datang dengan keluhan penglihatan jauh kabur sejak 1 tahun. Kesulitan melihat tulisan di papan tulis dari belakang kelas, tapi membaca dan melihat dekat jelas. Riwayat: sering membaca sambil tiduran dan intensitas screen time tinggi. Kadang sakit kepala frontal saat belajar.</p></div>'},
+    {title:"Pemeriksaan & Tatalaksana", step:"IPM-2-12", content:'<div class="section"><h3>🔍 Pemeriksaan Fisik Mata</h3><ul><li><strong>Visus:</strong> OD 6/15, OS 6/18 — <strong>membaik dengan pin hole</strong> menjadi 6/6!</li><li>Refraksi: Sferis -1.5 D (miopia ringan)</li><li>Segmen anterior normal, fundus normal</li></ul><div class="media-box" style="background:#eaf2fa;border-color:#3498db;margin-top:8px"><h4 style="color:#2980b9">Diagnosis: Miopia Ringan Bilateral</h4><p>ICD-10: H52.1 • S-1.5 D • Visus 6/15</p></div><h3>💊 Tatalaksana</h3><ul><li><strong>Koreksi kacamata:</strong> -1.5 D untuk penggunaan jauh (tidak perlu untuk baca)</li><li><strong>Alternatif:</strong> Lensa kontak untuk mahasiswi aktif</li><li>Edukasi: Atur jarak baca 30-40 cm, pencahayaan cukup, istirahatkan mata (20-20-20 rule)</li><li>Kontrol refraksi tiap 1-2 tahun</li><li>Atropin dosis rendah 0.01% (untuk perambatan miopia pada anak) — rujuk spesialis</li></ul></div>'}
+  ]},
+  {id:11, name:"Hipermetropia", pages:[
+    {title:"Skenario", step:"IPM-1", content:'<div class="section"><h3>🏥 Skenario</h3><p>Seorang ibu rumah tangga, 45 tahun, datang dengan keluhan sakit kepala dan mata lelah saat membaca atau menjahit. Penglihatan jauh jelas, tapi dekat buram. Kadang mata terasa perih dan berair setelah baca lama. Tidak punya kacamata sebelumnya.</p></div>'},
+    {title:"Pemeriksaan & Tatalaksana", step:"IPM-2-12", content:'<div class="section"><h3>🔍 Pemeriksaan</h3><ul><li><strong>Visus jauh:</strong> 6/6 normal</li><li><strong>Visus dekat:</strong> Jaeger J4 (normal &lt;J2)</li><li>Refraksi: Sferis +2.0 D (hipermetropia rendah)</li><li>Fundus normal, konjungtiva normal</li></ul><div class="media-box" style="background:#eaf2fa;border-color:#3498db;margin-top:8px"><h4 style="color:#2980b9">Diagnosis: Hipermetropia Ringan Bilateral</h4><p>ICD-10: H52.0 • S+2.0 D</p></div><h3>💊 Tatalaksana</h3><ul><li><strong>Kacamata baca (+2.0 D)</strong> untuk membaca/menjahit — penglihatan jauh tidak perlu koreksi pada usia &lt;40</li><li>Jika &gt;40 tahun dengan presbiopi → kacamata bifokal/progresif</li><li>Istirahatkan mata, atur posisi baca</li><li>Kontrol 1 tahun</li></ul></div>'}
+  ]},
+  {id:12, name:"Astigmatisma", pages:[
+    {title:"Skenario", step:"IPM-1", content:'<div class="section"><h3>🏥 Skenario</h3><p>Seorang staf administrasi, 25 tahun, datang dengan keluhan penglihatan buram dan distorsi (garis lurus terlihat miring) baik dekat maupun jauh. Mata cepat lelah, sering sakit kepala saat bekerja di komputer. Kadang melihat objek dengan "bayangan ganda" ringan.</p></div>'},
+    {title:"Pemeriksaan & Tatalaksana", step:"IPM-2-12", content:'<div class="section"><h3>🔍 Pemeriksaan</h3><ul><li><strong>Visus:</strong> OD 6/12, OS 6/12 — membaik dengan pin hole</li><li>Refraksi: Sferis -0.5, Silinder -1.25 Axis 180°</li><li>Kornea jernih, fundus normal</li><li>Kartu dial/astigmatisma fan: garis tertentu lebih jelas</li></ul><div class="media-box" style="background:#eaf2fa;border-color:#3498db"><h4 style="color:#2980b9">Diagnosis: Astigmatisma Myopicus Compositus</h4><p>ICD-10: H52.2 • S-0.5 C-1.25 x 180°</p></div><h3>💊 Tatalaksana</h3><ul><li><strong>Kacamata silinder (torus):</strong> Koreksi penuh untuk pemakaian sehari-hari</li><li>Lensa kontak torus sebagai alternatif</li><li>Edukasi: butuh adaptasi 1-2 minggu untuk kacamata baru, jangan menonton/layar berlebihan</li><li>Kontrol refraksi 2 tahun</li></ul></div>'}
+  ]},
+  {id:13, name:"Presbiopia", pages:[
+    {title:"Skenario", step:"IPM-1", content:'<div class="section"><h3>🏥 Skenario</h3><p>Seorang guru, 52 tahun, datang dengan keluhan kesulitan membaca koran atau teks kecil dalam jarak normal. Ia harus menjauhkan bacaan agar bisa fokus. Sejak 1 tahun terakhir, pasien sering sakit kepala dan mata lelah setelah mengoreksi tugas murid. Riwayat: sebelumnya penglihatan normal tanpa kacamata.</p></div>'},
+    {title:"Pemeriksaan & Tatalaksana", step:"IPM-2-12", content:'<div class="section"><h3>🔍 Pemeriksaan</h3><ul><li><strong>Visus jauh:</strong> 6/6 bilateral</li><li><strong>Visus dekat:</strong> J8 (tidak bisa membaca J2 lagi) — membaik dengan ditambah +2.5 D</li><li><strong>Akomodasi:</strong> Menurun sesuai usia (aturan Hofstetter: AA=15-0.25xusia)</li></ul><div class="media-box" style="background:#eaf2fa;border-color:#3498db"><h4 style="color:#2980b9">Diagnosis: Presbiopia Bilateral</h4><p>ICD-10: H52.4 • AA menurun • Membutuhkan S+2.5 untuk baca</p></div><h3>💊 Tatalaksana</h3><ul><li><strong>Kacamata baca (+2.5 D)</strong> untuk aktivitas dekat</li><li>Jika sudah pakai kacamata minus sebelumnya → bifokal atau progresif</li><li>Pencahayaan yang baik saat membaca</li><li>Edukasi: Presbiopia adalah proses normal penuaan — tidak bisa dicegah, hanya dikoreksi</li><li>Kontrol 1-2 tahun, perubahan ukuran bertahap (bertambah +0.25 setiap 2-3 th)</li></ul></div>'}
+  ]},
+  {id:14, name:"Buta Senja (Xeroftalmia)", pages:[
+    {title:"Skenario", step:"IPM-1", content:'<div class="section"><h3>🏥 Skenario</h3><p>Seorang anak laki-laki, 6 tahun, dari keluarga kurang mampu, dibawa ibunya dengan keluhan kesulitan melihat saat senja/hari gelap (rabun ayam). Anak juga sering mengucek mata dan matanya tampak kering. Pasien jarang makan sayur dan buah. Keluarga sangat terbatas secara ekonomi.</p></div>'},
+    {title:"Pemeriksaan & Tatalaksana", step:"IPM-2-12", content:'<div class="section"><h3>🔍 Pemeriksaan</h3><ul><li><strong>Visus:</strong> 6/9 (siang), turun drastis di redup (6/36)</li><li>Konjungtiva kering, Bitot spot (bercak putih berbusa di konjungtiva temporal)</li><li>Kornea: xerosis kornea (kering + keruh) — jika lanjut bisa keratomalasia!</li><li><strong>Dark adaptation test:</strong> Memanjang (memerlukan waktu lebih untuk adaptasi gelap)</li></ul><div class="media-box" style="background:#eaf2fa;border-color:#3498db"><h4 style="color:#2980b9">Diagnosis: Xeroftalmia (Defisiensi Vitamin A) — Buta Senja</h4><p>ICD-10: H53.6 • E50.1 • Bitot spot (+) • Defisiensi vit A</p></div><h3>💊 Tatalaksana</h3><ul><li><strong>Vitamin A dosis tinggi (SUPPLEMENTASI):</strong> Kapsul Vitamin A biru (100,000 IU) usia &lt;1 th atau merah (200,000 IU) usia &gt;1 th — 1 kapsul segera, 1 kapsul besok, 1 kapsul 2 minggu lagi</li><li>Edukasi gizi: Konsumsi sayur hijau (bayam, kangkung), wortel, telur, hati, pepaya</li><li>Fortifikasi makanan — sosialisasi ke masyarakat</li><li>Rujuk mata jika sudah ada keratomalasia/ulkus kornea</li></ul></div>'}
+  ]}
+];
+
+// FLIPBOOK ENGINE
+let currentDisease=0, currentPage=0, isFlipping=false;
+
+function init(){
+  const list=document.getElementById('diseaseList');
+  DISEASES.forEach((d,i)=>{
+    const li=document.createElement('li');
+    li.innerHTML='<span class="num">'+(i+1)+'</span><span class="name">'+d.name+'</span>';
+    li.onclick=()=>goToDisease(i);
+    li.id='disease-'+i;
+    list.appendChild(li);
+  });
+  loadDisease(0);
+}
+
+function goToDisease(idx){
+  if(isFlipping)return;
+  currentDisease=idx;currentPage=0;loadDisease(idx);
+  document.querySelectorAll('.disease-list li').forEach(l=>l.classList.remove('active'));
+  document.getElementById('disease-'+idx).classList.add('active');
+}
+
+function loadDisease(idx){
+  const disease=DISEASES[idx];const book=document.getElementById('flipbook');
+  book.innerHTML='';
+  disease.pages.forEach((page,i)=>{
+    const div=document.createElement('div');
+    div.className='page'+(i===0?' active':'');
+    div.id='page-'+idx+'-'+i;
+    div.innerHTML='<div class="page-header"><span class="step">'+page.step+'</span><span class="ptitle">'+page.title+'</span></div>'+page.content;
+    book.appendChild(div);
+  });
+  // Populate DD lists
+  DISEASES.forEach((d,di)=>{
+    d.pages.forEach((p,pi)=>{
+      const container=document.getElementById('ddList'+di);
+      if(container){
+        const dds=getDD(di);
+        dds.forEach(dd=>{
+          const item=document.createElement('div');
+          item.className='dd-item';
+          item.innerHTML='<div class="dd-title">'+dd.name+'</div><div class="dd-desc">'+dd.desc+'</div>';
+          item.onclick=()=>item.classList.toggle('revealed');
+          container.appendChild(item);
+        });
+      }
+    });
+  });
+  updateUI();
+}
+
+function getDD(idx){
+  const data=[
+    [{name:"Keratitis",desc:"Nyeri + fotofobia + visus turun + fluorescein (+)"},{name:"Uveitis Anterior",desc:"Mata merah perikornea + pupil miosis + flare bilik anterior"},{name:"Glaukoma Akut",desc:"Nyeri hebat + pupil mid-dilated + kornea edema"},{name:"Perdarahan Subkonjungtiva",desc:"Merah fokal, tidak difus, batas tegas, tidak ada sekret"}],
+    [{name:"Katarak imatur lainnya",desc:"Tipe nuklear/kortikal/PS — sama-sama visus turun progresif"},{name:"Retinopati Diabetik",desc:"Fundus: perdarahan, eksudat, neovaskularisasi"},{name:"Degenerasi makula",desc:"Visus turun sentral, metamorfopsi, drusen makula"},{name:"Glaukoma",desc:"TON ↑, CDR ↑, defek lapang pandang"}],
+    [{name:"Glaukoma Sudut Tertutup",desc:"Akut, nyeri, kornea edema, TON sangat ↑, pupil mid-dilated"},{name:"Katarak",desc:"Lensa keruh, CDR normal, TON normal"},{name:"Hipertensi Okular",desc:"TON ↑ tapi CDR normal, tidak ada defek lapang pandang"},{name:"Neuropati Optik Non-Glaukoma",desc:"CDR besar tapi TON normal, tidak ada defek lapang pandang khas"}],
+    [{name:"Khalazion",desc:"Benjolan kelopak tidak nyeri, tidak merah, kronik"},{name:"Selulitis Orbita",desc:"Edema difus, demam, nyeri, proptosis, oftalmoplegi"},{name:"Dakriosistitis",desc:"Benjolan di sakus lakrimal, medial canthus, nyeri tekan"}],
+    [{name:"Blefaritis Seboroik",desc:"Sisik berminyak tanpa ulkus, sering disertai dermatitis seboroik"},{name:"Dermatitis Kontak",desc:"Riwayat pemakaian kosmetik baru, gatal, edema kelopak"},{name:"Karsinoma Sel Basal Kelopak",desc:"Nodul non-nyeri, ulkus rolling border, kronis"}],
+    [{name:"Konjungtivitis",desc:"Merah difus dengan sekret — bukan bercak fokal"},{name:"Tumor konjungtiva",desc:"Lesi menetap, tidak berubah warna, perlu eval spesialis"},{name:"Vasa vasea pecah",desc:"Hipertensi tidak terkontrol, skrining TD"}],
+    [{name:"Abrasi Kornea",desc:"Fluorescein (+), nyeri, fotofobia, sensasi benda asing"},{name:"Ulkus Kornea",desc:"Fluorescein (+), infiltrat putih, nyeri berat"},{name:"Konjungtivitis",desc:"Merah difus, sekret, tapi benda asing (-)"}],
+    [{name:"Entropion",desc:"Margin kelopak melipat ke dalam (inversi)"},{name:"Distikiasis",desc:"Bulu mata tumbuh dari kelenjar Meibom"},{name:"Trauma kornea",desc:"Erosi kornea linier, riwayat trauma"}],
+    [{name:"Keratitis Sicca",desc:"Mata kering dengan keratitis punctate"},{name:"Konjungtivitis Alergi",desc:"Gatal dominan, papil tarsal raksasa"},{name:"Blefaritis",desc:"Krusta bulu mata, gatal pangkal kelopak"}],
+    [{name:"Skleritis",desc:"Nyeri berat, merah keunguan, fenilefrin tidak memucat"},{name:"Konjungtivitis",desc:"Merah difus + sekret, bukan sektoral"},{name:"Uveitis anterior",desc:"Flare bilik anterior, sinekia"}],
+    [{name:"Hipermetropia",desc:"Penglihatan jauh kabur pada dewasa, tensi akomodasi tinggi"},{name:"Astigmatisma",desc:"Distorsi penglihatan dekat & jauh"},{name:"Presbiopia",desc:"Mulai usia 40+, kesulitan baca dekat"}],
+    [{name:"Miopia",desc:"Jauh kabur, dekat jelas — refraksi S negatif"},{name:"Presbiopia",desc:"Usia 40+, baca dekat buram"},{name:"Astigmatisma",desc:"Distorsi + bayangan ganda"}],
+    [{name:"Miopia Simpleks",desc:"Bola mata axial length panjang, refraksi S negatif"},{name:"Hipermetropia",desc:"S positif, akomodasi tinggi, kadang penglihatan dekat lebih buram"},{name:"Presbiopia",desc:"Fisiologis usia, akomodasi menurun"}],
+    [{name:"Hipermetropia Tersembunyi",desc:"S positif rendah, akomodasi kompensasi"},{name:"Insufisiensi Akomodasi",desc:"AA rendah tidak sesuai usia"},{name:"Miopia Ringan",desc:"Refraksi S negatif ringan"}],
+    [{name:"Defisiensi Vitamin A subklinis",desc:"Dark adaptation memanjang, tanpa Bitot spot"},{name:"Retinitis Pigmentosa",desc:"Progresif, familial, niktalopia berat"},{name:"Degenerasi Makula",desc:"Visus sentral turun, bukan perifer/redup"}]
+  ];
+  return data[idx]||[{name:"DD lain",desc:"Konsulkan spesialis mata"}];
+}
+
+function updateUI(){
+  const disease=DISEASES[currentDisease];
+  document.getElementById('flipTitle').textContent=disease.name;
+  document.getElementById('flipBadge').textContent=(currentDisease+1)+'/'+DISEASES.length;
+  document.getElementById('pageNum').textContent=currentPage+1;
+  document.getElementById('pageTotal').textContent=disease.pages.length;
+  document.getElementById('prevBtn').disabled=currentPage===0;
+  document.getElementById('nextBtn').disabled=currentPage===disease.pages.length-1;
+  document.querySelectorAll('.page').forEach((el,i)=>el.classList.toggle('active',i===currentPage));
+}
+
+function nextPage(){
+  if(isFlipping||currentPage>=DISEASES[currentDisease].pages.length-1)return;
+  isFlipping=true;
+  const old=document.getElementById('page-'+currentDisease+'-'+currentPage);
+  old.classList.add('flip-out');
+  setTimeout(()=>{
+    old.classList.remove('active','flip-out');
+    currentPage++;
+    document.getElementById('page-'+currentDisease+'-'+currentPage).classList.add('flip-in');
+    updateUI();
+    setTimeout(()=>{document.getElementById('page-'+currentDisease+'-'+currentPage).classList.remove('flip-in');isFlipping=false;},400);
+  },300);
+}
+
+function prevPage(){
+  if(isFlipping||currentPage<=0)return;
+  isFlipping=true;
+  const old=document.getElementById('page-'+currentDisease+'-'+currentPage);
+  old.style.animation='flipOut .5s ease reverse';
+  setTimeout(()=>{
+    old.classList.remove('active');old.style.animation='';
+    currentPage--;
+    document.getElementById('page-'+currentDisease+'-'+currentPage).classList.add('active');
+    updateUI();
+    setTimeout(()=>{isFlipping=false;},300);
+  },300);
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')nextPage();
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')prevPage();
+});
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
