@@ -1910,6 +1910,10 @@ const DISEASES = [
   }
 ];
 
+let currentDisease = 0;
+let currentPage = 0;
+let isFlipping = false;
+
 function init() {
   renderDiseaseList();
   loadDisease(0);
