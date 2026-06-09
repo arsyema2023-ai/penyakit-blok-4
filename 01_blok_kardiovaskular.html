@@ -1933,7 +1933,7 @@ function goToDisease(idx) {
   currentPage = 0;
   loadDisease(idx);
   document.querySelectorAll('.disease-list li').forEach(li => li.classList.remove('active'));
-  document.getElementById(`disease-${idx}`).classList.add('active');
+  document.getElementById('disease-' + idx).classList.add('active');
 }
 
 function loadDisease(idx) {
@@ -1944,55 +1944,203 @@ function loadDisease(idx) {
   disease.pages.forEach((page, i) => {
     const div = document.createElement('div');
     div.className = 'page' + (i === 0 ? ' active' : '');
-    div.id = `page-${idx}-${i}`;
+    div.id = 'page-' + idx + '-' + i;
     
-    // Process differential diagnosis pages
-    let content = page.content;
-    if (content.includes('class="dd-list"')) {
-      const ddMatch = content.match(/id="(ddList\d+)"/);
-      if (ddMatch) {
-        // Will populate after render
-      }
-    }
-    
-    div.innerHTML = `
-      <div class="page-header">
-        <span class="step">${page.step || ''}</span>
-        <span class="page-title">${page.title}</span>
-        <span class="page-num">${i+1}/${disease.pages.length}</span>
-      </div>
-      ${content}
-    `;
+    div.innerHTML = '<div class="page-header"><span class="step">' + page.step + '</span><span class="page-title">' + page.title + '</span><span class="page-num">' + (i+1) + '/' + disease.pages.length + '</span></div>' + page.content;
     book.appendChild(div);
-  });
-  
-  // Populate differential diagnoses
-  DISEASES.forEach((d, di) => {
-    d.pages.forEach((p, pi) => {
-      if (p.content.includes('class="dd-list"')) {
-        const container = document.getElementById(`ddList${di}`);
-        if (container) {
-          const dds = p.differentialDiagnoses || [
-            { name: "Diagnosis Banding A", desc: "Klik untuk detail" },
-            { name: "Diagnosis Banding B", desc: "Klik untuk detail" },
-            { name: "Diagnosis Banding C", desc: "Klik untuk detail" },
-            { name: "Diagnosis Banding D", desc: "Klik untuk detail" }
-          ];
-          dds.forEach(dd => {
-            const item = document.createElement('div');
-            item.className = 'dd-item';
-            item.innerHTML = `<div class="dd-title">${dd.name}</div><div class="dd-desc">${dd.desc}</div>`;
-            item.onclick = () => item.classList.toggle('reveal');
-            container.appendChild(item);
-          });
-        }
-      }
-    });
   });
   
   updateUI();
   drawECGs();
 }
+
+function updateUI() {
+  const disease = DISEASES[currentDisease];
+  document.getElementById('flipTitle').textContent = disease.name;
+  document.getElementById('flipBadge').textContent = (currentDisease+1) + '/' + DISEASES.length;
+  document.getElementById('pageNum').textContent = currentPage + 1;
+  document.getElementById('pageTotal').textContent = disease.pages.length;
+  
+  document.getElementById('prevBtn').disabled = currentPage === 0;
+  document.getElementById('nextBtn').disabled = currentPage === disease.pages.length - 1;
+  
+  document.querySelectorAll('.page').forEach((el, i) => {
+    el.classList.toggle('active', i === currentPage);
+  });
+}
+
+function nextPage() {
+  if (isFlipping) return;
+  const disease = DISEASES[currentDisease];
+  if (currentPage >= disease.pages.length - 1) return;
+  
+  isFlipping = true;
+  const oldPage = document.getElementById('page-' + currentDisease + '-' + currentPage);
+  oldPage.classList.add('flipping');
+  
+  setTimeout(() => {
+    oldPage.classList.remove('active', 'flipping');
+    currentPage++;
+    const newPage = document.getElementById('page-' + currentDisease + '-' + currentPage);
+    newPage.classList.add('flipping-in');
+    updateUI();
+    setTimeout(() => {
+      newPage.classList.remove('flipping-in');
+      isFlipping = false;
+    }, 500);
+  }, 350);
+}
+
+function prevPage() {
+  if (isFlipping) return;
+  if (currentPage <= 0) return;
+  
+  isFlipping = true;
+  const oldPage = document.getElementById('page-' + currentDisease + '-' + currentPage);
+  oldPage.classList.add('flipping');
+  oldPage.style.animation = 'flipOut 0.6s ease reverse';
+  
+  setTimeout(() => {
+    oldPage.classList.remove('active', 'flipping');
+    oldPage.style.animation = '';
+    currentPage--;
+    const newPage = document.getElementById('page-' + currentDisease + '-' + currentPage);
+    newPage.classList.add('active');
+    updateUI();
+    setTimeout(() => { isFlipping = false; }, 300);
+  }, 350);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextPage();
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prevPage();
+});
+
+// ============================================================
+// ECG SIMULATOR
+// ============================================================
+function initECG() {}
+
+function drawECGs() {
+  const c1 = document.getElementById('ecgCanvas1');
+  if (c1) drawECG(c1, 'lvh');
+  const c2 = document.getElementById('ecgCanvas2');
+  if (c2) drawECG(c2, 'stemi');
+  const c3 = document.getElementById('ecgCanvas3');
+  if (c3) drawECG(c3, 'chf');
+  const c5 = document.getElementById('ecgCanvas5');
+  if (c5) drawECG(c5, 'afib');
+  const c6 = document.getElementById('ecgCanvas6');
+  if (c6) drawECG(c6, 'pmitrale');
+  const c8 = document.getElementById('ecgCanvas8');
+  if (c8) drawECG(c8, 'pericarditis');
+}
+
+function drawECG(canvas, type) {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = Math.min(800, rect.width - 20) * 2;
+  canvas.height = 120 * 2;
+  canvas.style.width = (canvas.width / 2) + 'px';
+  canvas.style.height = '120px';
+  
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.scale(2, 2);
+  
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, w/2, h/2);
+  
+  ctx.strokeStyle = '#e0e0e0';
+  ctx.lineWidth = 0.3;
+  for (let x = 0; x < w/2; x += 5) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h/2); ctx.stroke(); }
+  for (let y = 0; y < h/2; y += 5) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w/2, y); ctx.stroke(); }
+  
+  ctx.strokeStyle = '#d0d0d0';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < w/2; x += 25) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h/2); ctx.stroke(); }
+  for (let y = 0; y < h/2; y += 25) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w/2, y); ctx.stroke(); }
+  
+  ctx.strokeStyle = '#c0392b';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  
+  const midY = h/4;
+  let amplitude = 20;
+  if (type === 'stemi') amplitude = 28;
+  else if (type === 'afib') amplitude = 18;
+  else if (type === 'pericarditis') amplitude = 22;
+  
+  const isAFib = type === 'afib';
+  const points = [];
+  for (let x = 0; x < w/2 - 40; x += 1) {
+    let y = midY;
+    const t = x / 20;
+    
+    if (isAFib) {
+      y += (Math.random() - 0.5) * 2.5;
+      if (x % 60 > 46 && x % 60 < 52) y -= Math.sin(((x % 60) - 46) / 6 * Math.PI) * (14 + (x % 7) * 2);
+      else if (x % 60 > 52 && x % 60 < 58) y += Math.sin(((x % 60) - 52) / 6 * Math.PI) * 4;
+    } else if (type === 'pericarditis') {
+      if (x < 10) y += Math.sin(t * 0.1) * 1;
+      else if (x >= 10 && x < 30) { const p = (x - 10) / 20; y -= Math.sin(p * Math.PI) * 5; }
+      else if (x >= 30 && x < 55) y += Math.sin(t * 0.1) * 0.5;
+      else if (x >= 55 && x < 75) { const q = (x - 55) / 20; y += Math.sin(q * Math.PI) * 3; y -= Math.sin(q * Math.PI) * amplitude; }
+      else if (x >= 75 && x < 95) y += Math.sin((x - 75) / 20 * Math.PI) * 5;
+      else if (x >= 95 && x < 115) y -= 3;
+      else if (x >= 115 && x < 155) { const tw = (x - 115) / 40; y -= Math.sin(tw * Math.PI) * 8; }
+      else y += Math.sin(t * 0.1) * 0.5;
+    } else if (type === 'pmitrale') {
+      if (x < 10) y += Math.sin(t * 0.1);
+      else if (x >= 10 && x < 20) { const p1 = (x - 10) / 10; y -= Math.sin(p1 * Math.PI) * 4; }
+      else if (x >= 20 && x < 25) y += Math.sin(t * 0.2) * 1;
+      else if (x >= 25 && x < 35) { const p2 = (x - 25) / 10; y -= Math.sin(p2 * Math.PI) * 4; }
+      else if (x >= 35 && x < 60) y += Math.sin(t * 0.1) * 0.5;
+      else if (x >= 60 && x < 80) { const q = (x - 60) / 20; y += Math.sin(q * Math.PI) * 3; y -= Math.sin(q * Math.PI) * amplitude; }
+      else if (x >= 80 && x < 95) y += Math.sin((x - 80) / 15 * Math.PI) * 5;
+      else if (x >= 95 && x < 120) y += 0.5;
+      else if (x >= 120 && x < 160) { const tw = (x - 120) / 40; y += Math.sin(tw * Math.PI) * 7; }
+      else y += Math.sin(t * 0.1) * 0.5;
+    } else {
+      if (x < 10) y += Math.sin(t * 0.1) * 1;
+      else if (x >= 10 && x < 30) { const p = (x - 10) / 20; y -= Math.sin(p * Math.PI) * (type === 'lvh' ? 8 : 6); }
+      else if (x >= 30 && x < 60) y += Math.sin(t * 0.1) * 1;
+      else if (x >= 60 && x < 105) {
+        const q = (x - 60) / 45;
+        if (q < 0.2) y += Math.sin(q / 0.2 * Math.PI) * 4;
+        else if (q < 0.35) y -= Math.sin((q - 0.2) / 0.15 * Math.PI) * amplitude;
+        else if (q < 0.5) y += Math.sin((q - 0.35) / 0.15 * Math.PI) * 6;
+        else y += Math.sin(t * 0.1) * 1;
+      } else if (x >= 105 && x < 140) {
+        if (type === 'stemi') y -= 4;
+        else if (type === 'lvh') y += Math.sin(t * 0.2) * 1;
+        else y += Math.sin(t * 0.2) * 0.5;
+      } else if (x >= 140 && x < 190) {
+        const tw = (x - 140) / 50;
+        if (type === 'stemi') y -= Math.sin(tw * Math.PI) * 10;
+        else if (type === 'chf') y += Math.sin(tw * Math.PI) * 7;
+        else y += Math.sin(tw * Math.PI) * (type === 'lvh' ? 6 : 8);
+      } else if (x >= 190 && x < 210) y += Math.sin(t * 0.1) * 1;
+    }
+    points.push({ x: x + 20, y: y });
+  }
+  
+  points.forEach((p, i) => {
+    if (i === 0) ctx.moveTo(p.x, p.y);
+    else ctx.lineTo(p.x, p.y);
+  });
+  ctx.stroke();
+  
+  ctx.fillStyle = '#2c3e50';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.fillText(type === 'lvh' ? 'EKG: LVH (Sokolow-Lyon >35mm)' : (type === 'stemi' ? 'EKG: STEMI Anterior (ST Elevasi V1-V4)' : (type === 'chf' ? 'EKG: CHF — LVH + Q patologis' : (type === 'afib' ? 'EKG: Fibrilasi Atrium' : (type === 'pmitrale' ? 'EKG: P Mitrale (st. mitral)' : 'EKG: Perikarditis')))), 20, 18);
+  
+  ctx.font = '10px sans-serif';
+  ctx.fillStyle = type === 'stemi' || type === 'pericarditis' || type === 'chf' ? '#c0392b' : '#8e44ad';
+  ctx.fillText(type === 'stemi' ? '↑ ST elevasi' : (type === 'lvh' ? 'LVH + Strain pattern' : (type === 'afib' ? 'Irama irreguler | P hilang' : (type === 'pericarditis' ? 'ST elevasi difus + PR depresi' : (type === 'pmitrale' ? 'P bifid (mitral P wave)' : 'LVH + Q patologis anterior')))), 20, 58);
+}
+
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init)}else{init()}
 
 function updateUI() {
   const disease = DISEASES[currentDisease];
