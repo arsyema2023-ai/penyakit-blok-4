@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSCE Flipbook — 75 Kasus SKDI 4A</title>
+<style>
+:root{--primary:#2c3e50;--bg:#f5f6fa;--card:#fff;--shadow:0 8px 32px rgba(0,0,0,0.1);--radius:16px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--primary);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 20px}
+.container{max-width:1000px;width:100%}
+.header{text-align:center;margin-bottom:40px}
+.header h1{font-size:2rem;margin-bottom:8px;background:linear-gradient(135deg,#c0392b,#8e44ad,#16a085);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header p{color:#7f8c8d;font-size:1rem}
+.header .badge{display:inline-block;background:#2c3e50;color:#fff;padding:4px 16px;border-radius:20px;font-size:0.8rem;margin-top:12px}
+.blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:40px}
+.block{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;transition:transform .3s;cursor:pointer;text-decoration:none;color:var(--primary);display:block}
+.block:hover{transform:translateY(-4px)}
+.block .icon{font-size:2rem;margin-bottom:8px}
+.block h2{font-size:1.1rem;margin-bottom:4px}
+.block .count{font-size:0.8rem;color:#95a5a6;margin-bottom:8px}
+.block .strip{height:4px;border-radius:4px;margin-top:12px;width:60px}
+.cardio .strip{background:#c0392b}.mata .strip{background:#3498db}.kulit .strip{background:#8e44ad}.tht .strip{background:#16a085}.msk .strip{background:#e67e22}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:40px 0}
+.feature{background:var(--card);border-radius:12px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.feature .f-icon{font-size:1.5rem;margin-bottom:6px}
+.feature h3{font-size:0.85rem;color:var(--primary)}
+.feature p{font-size:0.75rem;color:#95a5a6}
+.repo-link{text-align:center;margin-top:40px;padding:20px;color:#95a5a6;font-size:0.8rem}
+.repo-link a{color:#3498db;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>📖 OSCE Flipbook — 75 Kasus SKDI 4A</h1>
+<p>Bahan ajar interaktif mahasiswa kedokteran S1 • IPM 12 langkah • Dilengkapi ECG Simulator</p>
+<div class="badge">5 Blok • 75 Penyakit • SKDI 4A</div>
+</div>
+
+<div class="blocks">
+<a href="01_blok_kardiovaskular.html" class="block cardio">
+<div class="icon">❤️</div>
+<h2>Blok Kardiovaskular</h2>
+<div class="count">15 flipbook — Hipertensi, IMA, Gagal Jantung, dll.</div>
+<div class="strip"></div>
+</a>
+<a href="02_blok_mata.html" class="block mata">
+<div class="icon">👁️</div>
+<h2>Blok Mata</h2>
+<div class="count">15 flipbook — Konjungtivitis, Katarak, Glaukoma, dll.</div>
+<div class="strip"></div>
+</a>
+<a href="03_blok_kulit.html" class="block kulit">
+<div class="icon">🧴</div>
+<h2>Blok Kulit</h2>
+<div class="count">15 flipbook — Dermatitis, Akne, Skabies, Herpes, dll.</div>
+<div class="strip"></div>
+</a>
+<a href="04_blok_tht.html" class="block tht">
+<div class="icon">👂</div>
+<h2>Blok THT</h2>
+<div class="count">15 flipbook — OMA, Tonsilitis, Vertigo, Sinusitis, dll.</div>
+<div class="strip"></div>
+</a>
+<a href="05_blok_muskuloskeletal.html" class="block msk">
+<div class="icon">🦴</div>
+<h2>Blok Muskuloskeletal</h2>
+<div class="count">15 flipbook — OA, Gout, Fraktur, Dislokasi, dll.</div>
+<div class="strip"></div>
+</a>
+</div>
+
+<div class="features">
+<div class="feature"><div class="f-icon">🔄</div><h3>Flip Animation</h3><p>Efek balik halaman 3D interaktif</p></div>
+<div class="feature"><div class="f-icon">📊</div><h3>ECG Simulator</h3><p>Canvas JS — 6 jenis EKG real-time</p></div>
+<div class="feature"><div class="f-icon">📝</div><h3>Contoh Resep</h3><p>Format prescription authentic</p></div>
+<div class="feature"><div class="f-icon">🩺</div><h3>IPM 12 Langkah</h3><p>Skenario → Edukasi lengkap</p></div>
+<div class="feature"><div class="f-icon">🔄</div><h3>DD Interaktif</h3><p>Klik untuk reveal diagnosis banding</p></div>
+<div class="feature"><div class="f-icon">📱</div><h3>Responsive</h3><p>Bisa dibuka di HP & tablet</p></div>
+</div>
+
+<div class="repo-link">
+<p>Repo: <a href="https://github.com/arsyema2023-ai/penyakit-blok-4">arsyema2023-ai/penyakit-blok-4</a></p>
+<p>Dibangun berdasarkan Standar Kompetensi Dokter Indonesia (SKDI) 2012 — Kompetensi 4A</p>
+</div>
+</div>
+</body>
+</html>
