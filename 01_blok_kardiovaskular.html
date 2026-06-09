@@ -965,7 +965,7 @@ const DISEASES = [
         `
       }
     ]
-  }
+  },
   // 4. GAGAL JANTUNG KONGESTIF
   {
     id: 3, name: "Gagal Jantung Kongestif",
@@ -2233,7 +2233,7 @@ function drawECG(canvas, type) {
 }
 
 // Start
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", init); } else { init(); }
 </script>
 </body>
 </html>
